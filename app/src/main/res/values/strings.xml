@@ -14,7 +14,6 @@
     <string name="write">WRITE</string>
     <string name="read">READ</string>
     <string name="reset">RESET</string>
-    <string name="select_operation_to_perform">Select Operation</string>
     <string name="crap">Successful read from tag</string>
     <string name="search">Search</string>
     <string name="DriverInputVoltageLabel">Driver Input Voltage</string>
@@ -24,6 +23,7 @@
     <string name="ValidValueErrorMsg">Please enter valid values</string>
     <string name="select">Select</string>
     <string name="advanced">Advanced</string>
+    <string name="quickcross">Quick Cross</string>
 
 
     <string-array name="output_current_option_array">

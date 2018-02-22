@@ -14,9 +14,15 @@ import org.jetbrains.anko.find
 import org.jetbrains.anko.toast
 import java.math.BigDecimal
 import android.view.MenuItem
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.driverList
 import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.standardMaxCurrent
 import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.standardMinCurrent
+import com.opencsv.CSVReader
+import java.io.InputStreamReader
 import java.io.Serializable
+import android.widget.ArrayAdapter
+
+
 
 
 /**
@@ -29,6 +35,11 @@ class MainActivity : AppCompatActivity() {
     var SEARCHRESULT: Int = 2
     private var mNfcAdapter: NfcAdapter? = null
     var read = true
+    var driverDictionary:MutableList<List<String>> = mutableListOf()
+    var tempDictionary:MutableList<MutableList<String>> = mutableListOf()
+    var rdocIndex:Int = 0
+    var driverRanges:MutableList<List<String>> = mutableListOf()
+    var driverListAdapter: ArrayAdapter<String>? = null;
 
     //CONVIENECE
     var currentConfig = NFCUtil.ultConfigManager.pendingConfiguration
@@ -36,6 +47,15 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        readDriversCSV()
+        //get the spinner from the xml.
+        val dropdown = findViewById<Spinner>(R.id.driverpnSpinner) as Spinner
+        //create an adapter to describe how the items are displayed, load the list of items from the string array resource
+        driverListAdapter = ArrayAdapter(this, R.layout.spinner_item, ULTConfigurationOptions.driverList)
+        //set the spinners adapter to the previously created one.
+        dropdown.adapter = driverListAdapter
+
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this)
         ULTConfigurationOptions.setupOptions()
         setupUI()
@@ -116,35 +136,7 @@ class MainActivity : AppCompatActivity() {
         //
         //  This will disable and gray out the control on the user interface
 
-        //SETUP SPINNER VALUES
-        val outputCurrentSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.outputPowerList)
-        this.outputCurrentSpinner.adapter = outputCurrentSpinnerAdapter
-
-        val minDimCurrentSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.minDimCurrentList)
-        this.minDimCurrentSpinner.adapter = minDimCurrentSpinnerAdapter
-
-        val fullBrightVoltageSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.fullBrightControlVoltageList)
-        this.fullBrightVoltageSpinner.adapter = fullBrightVoltageSpinnerAdapter
-
-        val minDimVoltageSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.minDimControlVoltageList)
-        this.minDimVoltageSpinner.adapter = minDimVoltageSpinnerAdapter
-
-        val dimToOffVoltageSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.dimToOffControlVoltageList)
-        this.dimToOffVoltageSpinner.adapter = dimToOffVoltageSpinnerAdapter
-
-        val minDimCurrentPctSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.minDimCurrentPctList)
-        this.minDimCurrentPctSpinner.adapter = minDimCurrentPctSpinnerAdapter
-
-        val dimCurveLogSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.dimCurveLogarithmicList)
-        this.dimCurveSpinner.adapter = dimCurveLogSpinnerAdapter
-
-
-        //SET SLIDER MAX VALUES. MAX VALUE IS EQUAL TO THE MAX NUMBER IN THE RANGE
-        outputCurrentSlider.max = MAX_OUTPUT_CURRENT - MIN_OUTPUT_CURRENT//standardMaxCurrent - standardMinCurrent
-        minDimCurrentSlider.max = MAX_DIM_CURRENT - MIN_DIM_CURRENT//253
-        fullBrightVoltageSlider.max = MAX_FULL_BRIGHT_VOLTAGE - MIN_FULL_BRIGHT_VOLTAGE//20//90-70
-        minDimVoltageSlider.max = MAX_DIM_CONTROL_VOLTAGE - MIN_DIM_CONTROL_VOLTAGE//30
-        dimToOffVoltageSlider.max = MAX_DIM_TO_OFF_CONTROL_VOLTAGE - MIN_DIM_TO_OFF_CONTROL_VOLTAGE//17
+        initControls()
 
         //SET DEFAULT BUTTON STATE TO WRITE
         writeToggleButton.callOnClick()
@@ -152,18 +144,66 @@ class MainActivity : AppCompatActivity() {
 
         //SET HANDLER FOR WRITE TOGGLE BUTTON
         this.writeToggleButton.setOnClickListener(View.OnClickListener()  { view ->
-            println("write button is selected, de-select read")
+            println("write button is selected, de-select read and reset")
             read = false
-            view.background = getDrawable(R.color.colorPrimary)
-            readToggleButton.background = getDrawable(R.color.button_material_light)
+            view.background = getDrawable(R.drawable.button_highlight)
+            readToggleButton.background = getDrawable(R.drawable.button_border)
+            resetButton.background = getDrawable(R.drawable.button_border)
         })
 
         //SET HANDLER FOR READ TOGGLE BUTTON
         this.readToggleButton.setOnClickListener(View.OnClickListener()  { view ->
-            println("write button not selected")
+            println("read button is selected, de-select write and reset")
             read = true
-            view.background = getDrawable(R.color.colorPrimary)
-            writeToggleButton.background = getDrawable(R.color.button_material_light)
+            view.background = getDrawable(R.drawable.button_highlight)
+            writeToggleButton.background = getDrawable(R.drawable.button_border)
+            resetButton.background = getDrawable(R.drawable.button_border)
+        })
+
+        //SET HANDLER FOR RESET TOGGLE BUTTON
+        this.resetButton.setOnClickListener(View.OnClickListener()  { view ->
+            println("reset button is selected, de-select read and write")
+            read = false
+            view.background = getDrawable(R.drawable.button_highlight)
+            readToggleButton.background = getDrawable(R.drawable.button_border)
+            writeToggleButton.background = getDrawable(R.drawable.button_border)
+
+            this.driverpnSpinner.setSelection(0)
+
+            ULTConfigurationOptions.outputPowerList.clear()
+            ULTConfigurationOptions.outputPowerOptionSet.clear()
+            var i: Int = MIN_OUTPUT_CURRENT
+            while (i <= MAX_OUTPUT_CURRENT){
+                ULTConfigurationOptions.outputPowerList.add("$i mA")
+                ULTConfigurationOptions.outputPowerOptionSet.add(i)
+                i += 1
+            }
+
+            initControls()
+
+            outputCurrentSpinner.setSelection(0)
+            minDimCurrentSpinner.setSelection(0)
+            minDimCurrentSlider.setProgress(0)
+            dimCurveLinearBtn.isChecked = false
+            dimCurveSftStrtBtn.isChecked = false
+            dimCurveLogBtn.isChecked = false
+            dimCurveSpinner.setSelection(0)
+            dimCurveSpinner.isEnabled = false
+
+            fullBrightVoltageSpinner.setSelection(0)
+            fullBrightVoltageSlider.setProgress(0)
+
+            minDimVoltageSpinner.setSelection(0)
+            minDimVoltageSlider.setProgress(0)
+
+            dimToOffVoltageSpinner.setSelection(0)
+            dimToOffVoltageSlider.setProgress(0)
+
+            NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent = MIN_OUTPUT_CURRENT.toShort()
+            NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent = MIN_DIM_CURRENT.toShort()
+            NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage = MIN_FULL_BRIGHT_VOLTAGE.toShort()
+            NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage = MIN_DIM_CONTROL_VOLTAGE.toShort()
+            NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage = MIN_DIM_TO_OFF_CONTROL_VOLTAGE.toShort()
         })
 
         //LINEAR DIMMING CURVE RADIO BUTTON
@@ -439,6 +479,54 @@ class MainActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {
             }
         }
+
+        //DRIVER P/N SPINNER
+        this.driverpnSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+
+                if(position != 0) {
+                    var filteredDrivers:MutableList<List<String>> = driverDictionary
+                    filteredDrivers = filteredDrivers.filter(fun(row) = row[0] == (ULTConfigurationOptions.driverList[position])).toMutableList()
+
+                    setUIValuesforDriver(filteredDrivers[0])
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+            }
+        }
+    }
+
+    private fun initControls() {
+        //SETUP SPINNER VALUES
+        val outputCurrentSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.outputPowerList)
+        this.outputCurrentSpinner.adapter = outputCurrentSpinnerAdapter
+
+        val minDimCurrentSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.minDimCurrentList)
+        this.minDimCurrentSpinner.adapter = minDimCurrentSpinnerAdapter
+
+        val fullBrightVoltageSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.fullBrightControlVoltageList)
+        this.fullBrightVoltageSpinner.adapter = fullBrightVoltageSpinnerAdapter
+
+        val minDimVoltageSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.minDimControlVoltageList)
+        this.minDimVoltageSpinner.adapter = minDimVoltageSpinnerAdapter
+
+        val dimToOffVoltageSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.dimToOffControlVoltageList)
+        this.dimToOffVoltageSpinner.adapter = dimToOffVoltageSpinnerAdapter
+
+        val minDimCurrentPctSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.minDimCurrentPctList)
+        this.minDimCurrentPctSpinner.adapter = minDimCurrentPctSpinnerAdapter
+
+        val dimCurveLogSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.dimCurveLogarithmicList)
+        this.dimCurveSpinner.adapter = dimCurveLogSpinnerAdapter
+
+
+        //SET SLIDER MAX VALUES. MAX VALUE IS EQUAL TO THE MAX NUMBER IN THE RANGE
+        outputCurrentSlider.max = MAX_OUTPUT_CURRENT - MIN_OUTPUT_CURRENT//standardMaxCurrent - standardMinCurrent
+        minDimCurrentSlider.max = MAX_DIM_CURRENT - MIN_DIM_CURRENT//253
+        fullBrightVoltageSlider.max = MAX_FULL_BRIGHT_VOLTAGE - MIN_FULL_BRIGHT_VOLTAGE//20//90-70
+        minDimVoltageSlider.max = MAX_DIM_CONTROL_VOLTAGE - MIN_DIM_CONTROL_VOLTAGE//30
+        dimToOffVoltageSlider.max = MAX_DIM_TO_OFF_CONTROL_VOLTAGE - MIN_DIM_TO_OFF_CONTROL_VOLTAGE//17
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -456,6 +544,11 @@ class MainActivity : AppCompatActivity() {
                 return super.onOptionsItemSelected(item);
             }
         }
+    }
+
+    public fun searchClick(view: View) {
+        val intent1 = Intent(this, SearchActivity::class.java)
+        this.startActivityForResult(intent1, SEARCH)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
@@ -479,50 +572,8 @@ class MainActivity : AppCompatActivity() {
                         val extras = intent!!.extras
                         if (extras != null) {
                             var selectedDriver = extras.get("DriverList") as List<String>
-                            standardMaxCurrent = selectedDriver[selectedDriver.count() - 2].toInt()
-                            standardMinCurrent = selectedDriver[selectedDriver.count() - 1].toInt()
-                            var outputCurrent = selectedDriver[2].toInt()
-
-                            ULTConfigurationOptions.outputPowerList.clear()
-                            ULTConfigurationOptions.outputPowerOptionSet.clear()
-
-                            var i: Int = standardMinCurrent
-                            while (i <= standardMaxCurrent){
-                                ULTConfigurationOptions.outputPowerList.add("$i mA")
-                                ULTConfigurationOptions.outputPowerOptionSet.add(i)
-                                i += 1
-                            }
-
-                            val outputCurrentSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.outputPowerList)
-                            this.outputCurrentSpinner.adapter = outputCurrentSpinnerAdapter
-
-                            outputCurrentSlider.max = standardMaxCurrent - standardMinCurrent
-                            outputCurrentSpinner.setSelection(outputCurrent - standardMinCurrent)
-                            outputCurrentSlider.setProgress(((outputCurrent - standardMinCurrent)*(standardMaxCurrent - standardMinCurrent)) / (standardMaxCurrent - standardMinCurrent))
-
-                            NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent = outputCurrent.toShort()
-
-                            minDimCurrentSpinner.setSelection(0)
-                            minDimCurrentSlider.setProgress(0)
-                            NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent = (ULTConfigurationOptions.minDimCurrentOptionSet[0]).toShort()
-
-                            dimCurveLinearBtn.isChecked = false
-                            dimCurveSftStrtBtn.isChecked = false
-                            dimCurveLogBtn.isChecked = false
-                            dimCurveSpinner.setSelection(0)
-                            dimCurveSpinner.isEnabled = false
-
-                            fullBrightVoltageSpinner.setSelection(10)
-                            fullBrightVoltageSlider.setProgress(10)
-                            NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage = (((ULTConfigurationOptions.fullBrightVoltageOptionSet[10]).toDouble() / 10) * 1000).toShort()
-
-                            minDimVoltageSpinner.setSelection(10)
-                            minDimVoltageSlider.setProgress(10)
-                            NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage = ((ULTConfigurationOptions.minDimVoltageOptionSet[10].toDouble() / 10) * 1000).toShort()
-
-                            dimToOffVoltageSpinner.setSelection(0)
-                            dimToOffVoltageSlider.setProgress(0)
-                            NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage = ((ULTConfigurationOptions.dimToOffVoltageOptionset[0].toDouble() / 10) * 1000).toShort()
+                            this.driverpnSpinner.setSelection(driverListAdapter!!.getPosition(selectedDriver[0]));
+                            setUIValuesforDriver(selectedDriver)
                         }
                     }
                 }
@@ -532,6 +583,53 @@ class MainActivity : AppCompatActivity() {
             e.printStackTrace()
             Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun setUIValuesforDriver(selectedDriver: List<String>) {
+        standardMaxCurrent = selectedDriver[selectedDriver.count() - 2].toInt()
+        standardMinCurrent = selectedDriver[selectedDriver.count() - 1].toInt()
+        var outputCurrent = selectedDriver[2].toInt()
+
+        ULTConfigurationOptions.outputPowerList.clear()
+        ULTConfigurationOptions.outputPowerOptionSet.clear()
+
+        var i: Int = standardMinCurrent
+        while (i <= standardMaxCurrent) {
+            ULTConfigurationOptions.outputPowerList.add("$i mA")
+            ULTConfigurationOptions.outputPowerOptionSet.add(i)
+            i += 1
+        }
+
+        val outputCurrentSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.outputPowerList)
+        this.outputCurrentSpinner.adapter = outputCurrentSpinnerAdapter
+
+        outputCurrentSlider.max = standardMaxCurrent - standardMinCurrent
+        outputCurrentSpinner.setSelection(outputCurrent - standardMinCurrent)
+        outputCurrentSlider.setProgress(((outputCurrent - standardMinCurrent) * (standardMaxCurrent - standardMinCurrent)) / (standardMaxCurrent - standardMinCurrent))
+
+        NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent = outputCurrent.toShort()
+
+        minDimCurrentSpinner.setSelection(0)
+        minDimCurrentSlider.setProgress(0)
+        NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent = (ULTConfigurationOptions.minDimCurrentOptionSet[0]).toShort()
+
+        dimCurveLinearBtn.isChecked = false
+        dimCurveSftStrtBtn.isChecked = false
+        dimCurveLogBtn.isChecked = false
+        dimCurveSpinner.setSelection(0)
+        dimCurveSpinner.isEnabled = false
+
+        fullBrightVoltageSpinner.setSelection(10)
+        fullBrightVoltageSlider.setProgress(10)
+        NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage = (((ULTConfigurationOptions.fullBrightVoltageOptionSet[10]).toDouble() / 10) * 1000).toShort()
+
+        minDimVoltageSpinner.setSelection(10)
+        minDimVoltageSlider.setProgress(10)
+        NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage = ((ULTConfigurationOptions.minDimVoltageOptionSet[10].toDouble() / 10) * 1000).toShort()
+
+        dimToOffVoltageSpinner.setSelection(0)
+        dimToOffVoltageSlider.setProgress(0)
+        NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage = ((ULTConfigurationOptions.dimToOffVoltageOptionset[0].toDouble() / 10) * 1000).toShort()
     }
 
     public fun advancedClick(view: View) {
@@ -553,6 +651,62 @@ class MainActivity : AppCompatActivity() {
         // Show Dim-to-Off Control Voltage
         findViewById<TextView>(R.id.dtocvLabel).visibility = View.VISIBLE
         findViewById<LinearLayout>(R.id.dtocvLayout).visibility = View.VISIBLE
+    }
+
+    private fun readDriversCSV() {
+
+        try {
+            // If the file has already been read, nothing to do
+            if(driverDictionary.count() > 0)
+                return
+
+            val reader = CSVReader(InputStreamReader(assets.open("drivers.csv")))
+
+            var nextLine = reader.readNext()
+            while (nextLine != null) {
+                // nextLine[] is an array of values from the line
+                if(nextLine.joinToString("").isNotBlank())  {
+                    tempDictionary.add(nextLine.toMutableList())
+                }
+                nextLine = reader.readNext()
+            }
+
+            for(i in tempDictionary[0].indices) {
+                if(tempDictionary[0][i].trim().toLowerCase() == "output_current")
+                    rdocIndex = i
+            }
+
+            tempDictionary.removeAt(0)
+
+            var driverMap = tempDictionary.groupBy { it[0] }
+
+            driverList.clear()
+            driverList.add("[ SELECT DRIVER... ]")
+            for(driver in driverMap.keys) {
+                var rows = driverMap.get(driver)
+
+                var maxCurrent = rows!!.first()[rdocIndex]
+                var minCurrent = rows!!.last()[rdocIndex]
+
+                driverRanges.add(listOf(driver, maxCurrent, minCurrent))
+                driverList.add(driver)
+            }
+
+            for(driver in tempDictionary) {
+                var catalogName = driver[0]
+
+                var range = driverRanges.filter(fun(row) = row[0] == catalogName)
+
+                driver += range[0][1]
+                driver += range[0][2]
+
+                driverDictionary.add(driver.toList())
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
+        }
     }
 }
 
@@ -582,6 +736,8 @@ object ULTConfigurationOptions{
 
     var standardMinCurrent = 315
     var standardMaxCurrent = 1050
+
+    var driverList:MutableList<String> = mutableListOf()
 
     //SET OPTION RANGES
     fun setupOptions(){
