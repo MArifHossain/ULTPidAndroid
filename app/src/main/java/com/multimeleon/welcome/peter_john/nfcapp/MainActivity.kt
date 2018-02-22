@@ -114,6 +114,10 @@ class MainActivity : AppCompatActivity() {
 
     fun updateUI() {
 
+        // Show the Driver name TextView
+        this.readDriverpn.visibility = View.VISIBLE
+        this.readDriverpn.text = NFCUtil.ultConfigManager.driverModelNameString
+
         outputCurrentSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() - MIN_OUTPUT_CURRENT))
         minDimCurrentSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt()) - MIN_DIM_CURRENT)
         fullBrightVoltageSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt()) - MIN_FULL_BRIGHT_VOLTAGE)
@@ -141,6 +145,7 @@ class MainActivity : AppCompatActivity() {
         //SET DEFAULT BUTTON STATE TO WRITE
         writeToggleButton.callOnClick()
         read = false
+        this.readDriverpn.visibility = View.GONE
 
         //SET HANDLER FOR WRITE TOGGLE BUTTON
         this.writeToggleButton.setOnClickListener(View.OnClickListener()  { view ->
@@ -158,6 +163,8 @@ class MainActivity : AppCompatActivity() {
             view.background = getDrawable(R.drawable.button_highlight)
             writeToggleButton.background = getDrawable(R.drawable.button_border)
             resetButton.background = getDrawable(R.drawable.button_border)
+            // Remove the dropdown
+            this.driverpnSpinner.visibility = View.GONE
         })
 
         //SET HANDLER FOR RESET TOGGLE BUTTON
@@ -167,6 +174,10 @@ class MainActivity : AppCompatActivity() {
             view.background = getDrawable(R.drawable.button_highlight)
             readToggleButton.background = getDrawable(R.drawable.button_border)
             writeToggleButton.background = getDrawable(R.drawable.button_border)
+
+            this.readDriverpn.visibility = View.GONE
+            this.readDriverpn.text = ""
+            this.driverpnSpinner.visibility = View.VISIBLE
 
             this.driverpnSpinner.setSelection(0)
 

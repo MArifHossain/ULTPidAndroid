@@ -12,6 +12,7 @@ import android.nfc.tech.Ndef
 import android.nfc.tech.NdefFormatable
 import java.io.IOException
 import kotlin.experimental.and
+import java.nio.charset.Charset
 
 /**
  * Created by joebakalor on 11/7/17.
@@ -86,6 +87,9 @@ class ULTConfigurationManager()
     )
 
 
+
+    // Driver Model string
+    var driverModelNameString = "";
     //CONFIGURATION READ FROM DRVIER
     var currentConfiguration = ULTConfiguration(0,0,0,0,0,0)
     //USER CONFIGURATION
@@ -117,6 +121,12 @@ class ULTConfigurationManager()
         } while (i < staticConfigBytes.count())
     }
 
+    //PARSE Driver Model Name
+
+    fun ULTParseDriverModel(driverModelNameBytes: ByteArray){
+
+        driverModelNameString = String(driverModelNameBytes, Charset.defaultCharset())
+    }
     //PARSE TUNING DATA BYTE ARRAY READ FROM DRIVER
     fun ULTParsTuningDataBytes(tuningDataBytes: ByteArray, preWrite: Boolean){
 
