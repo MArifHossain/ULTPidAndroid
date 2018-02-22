@@ -114,6 +114,7 @@ class MainActivity : AppCompatActivity() {
 
     fun updateUI() {
 
+        this.driverpnSpinner.setSelection(driverListAdapter!!.getPosition(NFCUtil.ultConfigManager.driverModelNameString));
         outputCurrentSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() - MIN_OUTPUT_CURRENT))
         minDimCurrentSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt()) - MIN_DIM_CURRENT)
         fullBrightVoltageSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt()) - MIN_FULL_BRIGHT_VOLTAGE)
