@@ -152,8 +152,11 @@ class MainActivity : AppCompatActivity() {
             println("write button is selected, de-select read and reset")
             read = false
             view.background = getDrawable(R.drawable.button_highlight)
+            (view as Button).setTextColor(Color.WHITE)
             readToggleButton.background = getDrawable(R.drawable.button_border)
+            readToggleButton.setTextColor(Color.BLACK)
             resetButton.background = getDrawable(R.drawable.button_border)
+            resetButton.setTextColor(Color.BLACK)
         })
 
         //SET HANDLER FOR READ TOGGLE BUTTON
@@ -161,8 +164,11 @@ class MainActivity : AppCompatActivity() {
             println("read button is selected, de-select write and reset")
             read = true
             view.background = getDrawable(R.drawable.button_highlight)
+            (view as Button).setTextColor(Color.WHITE)
             writeToggleButton.background = getDrawable(R.drawable.button_border)
+            writeToggleButton.setTextColor(Color.BLACK)
             resetButton.background = getDrawable(R.drawable.button_border)
+            resetButton.setTextColor(Color.BLACK)
             // Remove the dropdown
             this.driverpnSpinner.visibility = View.GONE
         })
@@ -172,8 +178,11 @@ class MainActivity : AppCompatActivity() {
             println("reset button is selected, de-select read and write")
             read = false
             view.background = getDrawable(R.drawable.button_highlight)
+            (view as Button).setTextColor(Color.WHITE)
             readToggleButton.background = getDrawable(R.drawable.button_border)
+            readToggleButton.setTextColor(Color.BLACK)
             writeToggleButton.background = getDrawable(R.drawable.button_border)
+            writeToggleButton.setTextColor(Color.BLACK)
 
             this.readDriverpn.visibility = View.GONE
             this.readDriverpn.text = ""
