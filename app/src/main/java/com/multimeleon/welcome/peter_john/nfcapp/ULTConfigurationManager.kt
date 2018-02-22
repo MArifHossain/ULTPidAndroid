@@ -12,6 +12,8 @@ import android.nfc.tech.Ndef
 import android.nfc.tech.NdefFormatable
 import java.io.IOException
 import kotlin.experimental.and
+import java.nio.charset.Charset
+
 
 /**
  * Created by joebakalor on 11/7/17.
@@ -58,6 +60,12 @@ class ULTConfigurationManager()
     }
 
     //STORE FORMATTED STATIC CONFIGURATION READ FROM DRIVER
+    private var driverModelName: ArrayList<ByteArray> = arrayListOf(
+            byteArrayOf(0x00, 0x00, 0x00, 0x00),//10
+            byteArrayOf(0x00, 0x00, 0x00, 0x00),//11
+            byteArrayOf(0x00, 0x00, 0x00, 0x00),//12
+            byteArrayOf(0x00, 0x00, 0x00, 0x00))//13
+    //STORE FORMATTED STATIC CONFIGURATION READ FROM DRIVER
     private var staticDataConfiguration: ArrayList<ByteArray> = arrayListOf(
             byteArrayOf(0x00, 0x00, 0x00, 0x00),//28
             byteArrayOf(0x00, 0x00, 0x00, 0x00),//29
@@ -85,7 +93,8 @@ class ULTConfigurationManager()
             byteArrayOf(0x00, 0x00, 0x00, 0x00)
     )
 
-
+    // Driver Model string
+    var driverModelNameString = "";
     //CONFIGURATION READ FROM DRVIER
     var currentConfiguration = ULTConfiguration(0,0,0,0,0,0)
     //USER CONFIGURATION
@@ -115,6 +124,23 @@ class ULTConfigurationManager()
                 }
             }
         } while (i < staticConfigBytes.count())
+    }
+    fun ULTGetDriverModelName(bytes: ByteArray){
+        return ULTParseDriverModel(bytes)
+    }
+    //PARSE Driver Model Name
+    fun ULTParseDriverModel(driverModelNameBytes: ByteArray){
+        var i = 0
+        do {
+            for (j in 0..(driverModelName.count() - 1)){
+                for (k in 0..3){
+                    driverModelName[j][k] = driverModelNameBytes[i]
+                    i++
+                }
+            }
+        } while (i < driverModelNameBytes.count())
+
+        driverModelNameString = String(driverModelNameBytes, Charset.defaultCharset())
     }
 
     //PARSE TUNING DATA BYTE ARRAY READ FROM DRIVER
