@@ -91,12 +91,17 @@
                     app:layout_constraintTop_toBottomOf="@+id/btnLayout" />
                 <TextView
                     android:id="@+id/readDriverpn"
+                    android:background="@drawable/rectangle"
                     android:layout_width="match_parent"
-                    android:layout_height="36dp"
+                    android:layout_height="48dp"
+                    android:layout_marginBottom="12dp"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginRight="8dp"
+                    android:layout_marginTop="12dp"
                     android:gravity="center"
                     android:paddingLeft="8dp"
                     android:text=""
-                    android:textSize="24sp"
+                    android:textSize="20sp"
                     android:textColor="@android:color/black"
                     android:textStyle="bold"/>
                 <TextView

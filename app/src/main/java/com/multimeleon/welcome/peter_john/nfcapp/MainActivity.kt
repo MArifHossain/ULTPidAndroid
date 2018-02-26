@@ -37,6 +37,7 @@ class MainActivity : AppCompatActivity() {
     var read = true
     var driverDictionary:MutableList<List<String>> = mutableListOf()
     var tempDictionary:MutableList<MutableList<String>> = mutableListOf()
+    var catalogDictionary:MutableList<List<String>> = mutableListOf()
     var rdocIndex:Int = 0
     var driverRanges:MutableList<List<String>> = mutableListOf()
     var driverListAdapter: ArrayAdapter<String>? = null;
@@ -113,17 +114,58 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun updateUI() {
+        outputCurrentSpinner.isEnabled = true
+        outputCurrentSlider.isEnabled = true
+        minDimCurrentSpinner.isEnabled = true
+        minDimCurrentSlider.isEnabled = true
+        fullBrightVoltageSpinner.isEnabled = true
+        fullBrightVoltageSlider.isEnabled = true
+        minDimVoltageSpinner.isEnabled = true
+        minDimVoltageSlider.isEnabled = true
+        dimToOffVoltageSpinner.isEnabled = true
+        dimToOffVoltageSlider.isEnabled = true
+        minDimCurrentPctSpinner.isEnabled = true
+        dimCurveSpinner.isEnabled = true
+        dimCurveLinearBtn.isEnabled = true
+        dimCurveSftStrtBtn.isEnabled = true
+        dimCurveLogBtn.isEnabled = true
 
         // Show the Driver name TextView
         this.readDriverpn.visibility = View.VISIBLE
-        this.readDriverpn.text = NFCUtil.ultConfigManager.driverModelNameString
+        this.readDriverpn.text = lookupCatalogNumber(NFCUtil.ultConfigManager.driverCatalogIDString)
 
         outputCurrentSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() - MIN_OUTPUT_CURRENT))
+        outputCurrentSlider.setProgress(((NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() - MIN_OUTPUT_CURRENT) * (standardMaxCurrent - standardMinCurrent)) / (standardMaxCurrent - standardMinCurrent))
+
         minDimCurrentSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt()) - MIN_DIM_CURRENT)
+        minDimCurrentSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt() - MIN_DIM_CURRENT) * (MAX_DIM_CURRENT - MIN_DIM_CURRENT) / (MAX_DIM_CURRENT - MIN_DIM_CURRENT))
+
         fullBrightVoltageSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt()) - MIN_FULL_BRIGHT_VOLTAGE)
+        fullBrightVoltageSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt() - MIN_FULL_BRIGHT_VOLTAGE) * (MAX_FULL_BRIGHT_VOLTAGE - MIN_FULL_BRIGHT_VOLTAGE) / (MAX_FULL_BRIGHT_VOLTAGE - MIN_FULL_BRIGHT_VOLTAGE))
+
         minDimVoltageSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt()) - MIN_DIM_CONTROL_VOLTAGE)
+        minDimCurrentSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt() - MIN_DIM_CONTROL_VOLTAGE) * (MAX_DIM_CONTROL_VOLTAGE - MIN_DIM_CONTROL_VOLTAGE) / (MAX_DIM_CONTROL_VOLTAGE - MIN_DIM_CONTROL_VOLTAGE))
+
         dimToOffVoltageSpinner.setSelection(NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() -  MIN_DIM_TO_OFF_CONTROL_VOLTAGE)
+        dimToOffVoltageSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() -  MIN_DIM_TO_OFF_CONTROL_VOLTAGE) * (MAX_DIM_TO_OFF_CONTROL_VOLTAGE - MIN_DIM_TO_OFF_CONTROL_VOLTAGE) / (MAX_DIM_TO_OFF_CONTROL_VOLTAGE - MIN_DIM_TO_OFF_CONTROL_VOLTAGE))
         //TO DO: SET OTHER CONFIGURABLE PARAMTERS
+
+        // Disable controls after updating values
+        outputCurrentSpinner.isEnabled = false
+        outputCurrentSlider.isEnabled = false
+        minDimCurrentSpinner.isEnabled = false
+        minDimCurrentSlider.isEnabled = false
+        fullBrightVoltageSpinner.isEnabled = false
+        fullBrightVoltageSlider.isEnabled = false
+        minDimVoltageSpinner.isEnabled = false
+        minDimVoltageSlider.isEnabled = false
+        dimToOffVoltageSpinner.isEnabled = false
+        dimToOffVoltageSlider.isEnabled = false
+        minDimCurrentPctSpinner.isEnabled = false
+        dimCurveSpinner.isEnabled = false
+        dimCurveLinearBtn.isEnabled = false
+        dimCurveSftStrtBtn.isEnabled = false
+        dimCurveLogBtn.isEnabled = false
     }
 
 
@@ -157,6 +199,10 @@ class MainActivity : AppCompatActivity() {
             readToggleButton.setTextColor(Color.BLACK)
             resetButton.background = getDrawable(R.drawable.button_border)
             resetButton.setTextColor(Color.BLACK)
+
+            if(this.readDriverpn.text == "") {
+                this.driverpnSpinner.visibility = View.VISIBLE
+            }
         })
 
         //SET HANDLER FOR READ TOGGLE BUTTON
@@ -224,6 +270,22 @@ class MainActivity : AppCompatActivity() {
             NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage = MIN_FULL_BRIGHT_VOLTAGE.toShort()
             NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage = MIN_DIM_CONTROL_VOLTAGE.toShort()
             NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage = MIN_DIM_TO_OFF_CONTROL_VOLTAGE.toShort()
+
+            outputCurrentSpinner.isEnabled = false
+            outputCurrentSlider.isEnabled = false
+            minDimCurrentSpinner.isEnabled = false
+            minDimCurrentSlider.isEnabled = false
+            fullBrightVoltageSpinner.isEnabled = false
+            fullBrightVoltageSlider.isEnabled = false
+            minDimVoltageSpinner.isEnabled = false
+            minDimVoltageSlider.isEnabled = false
+            dimToOffVoltageSpinner.isEnabled = false
+            dimToOffVoltageSlider.isEnabled = false
+            minDimCurrentPctSpinner.isEnabled = false
+            dimCurveSpinner.isEnabled = false
+            dimCurveLinearBtn.isEnabled = false
+            dimCurveSftStrtBtn.isEnabled = false
+            dimCurveLogBtn.isEnabled = false
         })
 
         //LINEAR DIMMING CURVE RADIO BUTTON
@@ -547,6 +609,22 @@ class MainActivity : AppCompatActivity() {
         fullBrightVoltageSlider.max = MAX_FULL_BRIGHT_VOLTAGE - MIN_FULL_BRIGHT_VOLTAGE//20//90-70
         minDimVoltageSlider.max = MAX_DIM_CONTROL_VOLTAGE - MIN_DIM_CONTROL_VOLTAGE//30
         dimToOffVoltageSlider.max = MAX_DIM_TO_OFF_CONTROL_VOLTAGE - MIN_DIM_TO_OFF_CONTROL_VOLTAGE//17
+
+        outputCurrentSpinner.isEnabled = false
+        outputCurrentSlider.isEnabled = false
+        minDimCurrentSpinner.isEnabled = false
+        minDimCurrentSlider.isEnabled = false
+        fullBrightVoltageSpinner.isEnabled = false
+        fullBrightVoltageSlider.isEnabled = false
+        minDimVoltageSpinner.isEnabled = false
+        minDimVoltageSlider.isEnabled = false
+        dimToOffVoltageSpinner.isEnabled = false
+        dimToOffVoltageSlider.isEnabled = false
+        minDimCurrentPctSpinner.isEnabled = false
+        dimCurveSpinner.isEnabled = false
+        dimCurveLinearBtn.isEnabled = false
+        dimCurveSftStrtBtn.isEnabled = false
+        dimCurveLogBtn.isEnabled = false
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -606,6 +684,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setUIValuesforDriver(selectedDriver: List<String>) {
+        outputCurrentSpinner.isEnabled = true
+        outputCurrentSlider.isEnabled = true
+        minDimCurrentSpinner.isEnabled = true
+        minDimCurrentSlider.isEnabled = true
+        fullBrightVoltageSpinner.isEnabled = true
+        fullBrightVoltageSlider.isEnabled = true
+        minDimVoltageSpinner.isEnabled = true
+        minDimVoltageSlider.isEnabled = true
+        dimToOffVoltageSpinner.isEnabled = true
+        dimToOffVoltageSlider.isEnabled = true
+        minDimCurrentPctSpinner.isEnabled = true
+        dimCurveSpinner.isEnabled = true
+        dimCurveLinearBtn.isEnabled = true
+        dimCurveSftStrtBtn.isEnabled = true
+        dimCurveLogBtn.isEnabled = true
+
         standardMaxCurrent = selectedDriver[selectedDriver.count() - 2].toInt()
         standardMinCurrent = selectedDriver[selectedDriver.count() - 1].toInt()
         var outputCurrent = selectedDriver[2].toInt()
@@ -727,6 +821,32 @@ class MainActivity : AppCompatActivity() {
             e.printStackTrace()
             Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun lookupCatalogNumber(catalogID: String) : String {
+        try{
+            // If the file has already been read, nothing to do
+            if(catalogDictionary.count() > 0)
+                return catalogDictionary.find(fun(row) = row[0] == catalogID)!![1]
+
+            val reader = CSVReader(InputStreamReader(assets.open("catalog.csv")))
+
+            var nextLine = reader.readNext()
+            while (nextLine != null) {
+                // nextLine[] is an array of values from the line
+                if(nextLine.joinToString("").isNotBlank())  {
+                    catalogDictionary.add(nextLine.toMutableList())
+                }
+                nextLine = reader.readNext()
+            }
+
+            return catalogDictionary.find(fun(row) = row[0] == catalogID)!![1]
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
+        }
+        return ""
     }
 }
 

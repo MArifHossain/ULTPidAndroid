@@ -88,8 +88,8 @@ class ULTConfigurationManager()
 
 
 
-    // Driver Model string
-    var driverModelNameString = "";
+    // Driver Catalog ID string
+    var driverCatalogIDString = "";
     //CONFIGURATION READ FROM DRVIER
     var currentConfiguration = ULTConfiguration(0,0,0,0,0,0)
     //USER CONFIGURATION
@@ -123,9 +123,9 @@ class ULTConfigurationManager()
 
     //PARSE Driver Model Name
 
-    fun ULTParseDriverModel(driverModelNameBytes: ByteArray){
-
-        driverModelNameString = String(driverModelNameBytes, Charset.defaultCharset())
+    fun ULTParseDriverCatalogID(){
+        // Read the CatalogID from the static Configuration Bytes
+        driverCatalogIDString = (((((staticDataConfiguration[3][1]).toInt()).and(255)).shl(8)).or((staticDataConfiguration[3][0]).toInt() and 65535)).toString()
     }
     //PARSE TUNING DATA BYTE ARRAY READ FROM DRIVER
     fun ULTParsTuningDataBytes(tuningDataBytes: ByteArray, preWrite: Boolean){

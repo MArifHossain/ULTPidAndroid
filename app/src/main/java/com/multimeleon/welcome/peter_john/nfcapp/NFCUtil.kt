@@ -24,8 +24,8 @@ object NFCUtil {
 
 
     //CONVENIENCE FUNCTIONS
-    fun receiveDriverModel(bytes: ByteArray){
-        ultConfigManager.ULTParseDriverModel(bytes)
+    fun receiveDriverCatalogID(){
+        ultConfigManager.ULTParseDriverCatalogID()
     }
 
     fun recieveStaticConfigBlocks(bytes: ByteArray){
@@ -61,7 +61,6 @@ object NFCUtil {
             println("Intent action = ${intent.action}")
 
 
-            var driverModel: ArrayList<Byte> = arrayListOf()
             var staticConfigBytes: ArrayList<Byte> = arrayListOf()
             var tuningData: ArrayList<Byte> = arrayListOf()
             var logData: ArrayList<Byte> = arrayListOf()
@@ -81,12 +80,8 @@ object NFCUtil {
 
                         //readPages() reads 4 blocks or 16 bytes starting from the offset index specified
 
-                        //READ MODEL NUMBER STRING
-                        var data = it.readPages(16)
-                        driverModel.addAll(data.toList())
-                        receiveDriverModel(driverModel.toByteArray())
                         //READ STATIC DATA FROM DRIVER 40 ==> 5 BLOCKS, NOT USED FOR ANYTHING CURRENTLY
-                        data = it.readPages(40)
+                        var data = it.readPages(40)
                         staticConfigBytes.addAll(data.toList())
 
                         data = it.readPages(44)
@@ -94,6 +89,7 @@ object NFCUtil {
 
                         //PROCESS STATIC CONFIG DATA READ FROM DRIVER
                         recieveStaticConfigBlocks(staticConfigBytes.toByteArray())
+                        receiveDriverCatalogID()
 
                         //READ TUNING DATA FROM TAG 48 ==> 9 BLOCKS
 
