@@ -114,21 +114,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun updateUI() {
-        outputCurrentSpinner.isEnabled = true
-        outputCurrentSlider.isEnabled = true
-        minDimCurrentSpinner.isEnabled = true
-        minDimCurrentSlider.isEnabled = true
-        fullBrightVoltageSpinner.isEnabled = true
-        fullBrightVoltageSlider.isEnabled = true
-        minDimVoltageSpinner.isEnabled = true
-        minDimVoltageSlider.isEnabled = true
-        dimToOffVoltageSpinner.isEnabled = true
-        dimToOffVoltageSlider.isEnabled = true
-        minDimCurrentPctSpinner.isEnabled = true
-        dimCurveSpinner.isEnabled = true
-        dimCurveLinearBtn.isEnabled = true
-        dimCurveSftStrtBtn.isEnabled = true
-        dimCurveLogBtn.isEnabled = true
+        setControlsEnabled(true)
 
         // Show the Driver name TextView
         this.readDriverpn.visibility = View.VISIBLE
@@ -151,21 +137,7 @@ class MainActivity : AppCompatActivity() {
         //TO DO: SET OTHER CONFIGURABLE PARAMTERS
 
         // Disable controls after updating values
-        outputCurrentSpinner.isEnabled = false
-        outputCurrentSlider.isEnabled = false
-        minDimCurrentSpinner.isEnabled = false
-        minDimCurrentSlider.isEnabled = false
-        fullBrightVoltageSpinner.isEnabled = false
-        fullBrightVoltageSlider.isEnabled = false
-        minDimVoltageSpinner.isEnabled = false
-        minDimVoltageSlider.isEnabled = false
-        dimToOffVoltageSpinner.isEnabled = false
-        dimToOffVoltageSlider.isEnabled = false
-        minDimCurrentPctSpinner.isEnabled = false
-        dimCurveSpinner.isEnabled = false
-        dimCurveLinearBtn.isEnabled = false
-        dimCurveSftStrtBtn.isEnabled = false
-        dimCurveLogBtn.isEnabled = false
+        setControlsEnabled(false)
     }
 
 
@@ -202,6 +174,12 @@ class MainActivity : AppCompatActivity() {
 
             if(this.readDriverpn.text == "") {
                 this.driverpnSpinner.visibility = View.VISIBLE
+
+                if(driverpnSpinner.selectedItemPosition != 0) {
+                    setControlsEnabled(true)
+                }
+            } else {
+                setControlsEnabled(true)
             }
         })
 
@@ -217,6 +195,8 @@ class MainActivity : AppCompatActivity() {
             resetButton.setTextColor(Color.BLACK)
             // Remove the dropdown
             this.driverpnSpinner.visibility = View.GONE
+
+            setControlsEnabled(false)
         })
 
         //SET HANDLER FOR RESET TOGGLE BUTTON
@@ -271,21 +251,7 @@ class MainActivity : AppCompatActivity() {
             NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage = MIN_DIM_CONTROL_VOLTAGE.toShort()
             NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage = MIN_DIM_TO_OFF_CONTROL_VOLTAGE.toShort()
 
-            outputCurrentSpinner.isEnabled = false
-            outputCurrentSlider.isEnabled = false
-            minDimCurrentSpinner.isEnabled = false
-            minDimCurrentSlider.isEnabled = false
-            fullBrightVoltageSpinner.isEnabled = false
-            fullBrightVoltageSlider.isEnabled = false
-            minDimVoltageSpinner.isEnabled = false
-            minDimVoltageSlider.isEnabled = false
-            dimToOffVoltageSpinner.isEnabled = false
-            dimToOffVoltageSlider.isEnabled = false
-            minDimCurrentPctSpinner.isEnabled = false
-            dimCurveSpinner.isEnabled = false
-            dimCurveLinearBtn.isEnabled = false
-            dimCurveSftStrtBtn.isEnabled = false
-            dimCurveLogBtn.isEnabled = false
+            setControlsEnabled(false)
         })
 
         //LINEAR DIMMING CURVE RADIO BUTTON
@@ -610,21 +576,7 @@ class MainActivity : AppCompatActivity() {
         minDimVoltageSlider.max = MAX_DIM_CONTROL_VOLTAGE - MIN_DIM_CONTROL_VOLTAGE//30
         dimToOffVoltageSlider.max = MAX_DIM_TO_OFF_CONTROL_VOLTAGE - MIN_DIM_TO_OFF_CONTROL_VOLTAGE//17
 
-        outputCurrentSpinner.isEnabled = false
-        outputCurrentSlider.isEnabled = false
-        minDimCurrentSpinner.isEnabled = false
-        minDimCurrentSlider.isEnabled = false
-        fullBrightVoltageSpinner.isEnabled = false
-        fullBrightVoltageSlider.isEnabled = false
-        minDimVoltageSpinner.isEnabled = false
-        minDimVoltageSlider.isEnabled = false
-        dimToOffVoltageSpinner.isEnabled = false
-        dimToOffVoltageSlider.isEnabled = false
-        minDimCurrentPctSpinner.isEnabled = false
-        dimCurveSpinner.isEnabled = false
-        dimCurveLinearBtn.isEnabled = false
-        dimCurveSftStrtBtn.isEnabled = false
-        dimCurveLogBtn.isEnabled = false
+        setControlsEnabled(false)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -684,21 +636,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setUIValuesforDriver(selectedDriver: List<String>) {
-        outputCurrentSpinner.isEnabled = true
-        outputCurrentSlider.isEnabled = true
-        minDimCurrentSpinner.isEnabled = true
-        minDimCurrentSlider.isEnabled = true
-        fullBrightVoltageSpinner.isEnabled = true
-        fullBrightVoltageSlider.isEnabled = true
-        minDimVoltageSpinner.isEnabled = true
-        minDimVoltageSlider.isEnabled = true
-        dimToOffVoltageSpinner.isEnabled = true
-        dimToOffVoltageSlider.isEnabled = true
-        minDimCurrentPctSpinner.isEnabled = true
-        dimCurveSpinner.isEnabled = true
-        dimCurveLinearBtn.isEnabled = true
-        dimCurveSftStrtBtn.isEnabled = true
-        dimCurveLogBtn.isEnabled = true
+        setControlsEnabled(true)
 
         standardMaxCurrent = selectedDriver[selectedDriver.count() - 2].toInt()
         standardMinCurrent = selectedDriver[selectedDriver.count() - 1].toInt()
@@ -744,6 +682,24 @@ class MainActivity : AppCompatActivity() {
         dimToOffVoltageSpinner.setSelection(0)
         dimToOffVoltageSlider.setProgress(0)
         NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage = ((ULTConfigurationOptions.dimToOffVoltageOptionset[0].toDouble() / 10) * 1000).toShort()
+    }
+
+    private fun setControlsEnabled(value: Boolean) {
+        outputCurrentSpinner.isEnabled = value
+        outputCurrentSlider.isEnabled = value
+        minDimCurrentSpinner.isEnabled = value
+        minDimCurrentSlider.isEnabled = value
+        fullBrightVoltageSpinner.isEnabled = value
+        fullBrightVoltageSlider.isEnabled = value
+        minDimVoltageSpinner.isEnabled = value
+        minDimVoltageSlider.isEnabled = value
+        dimToOffVoltageSpinner.isEnabled = value
+        dimToOffVoltageSlider.isEnabled = value
+        minDimCurrentPctSpinner.isEnabled = value
+        dimCurveSpinner.isEnabled = value
+        dimCurveLinearBtn.isEnabled = value
+        dimCurveSftStrtBtn.isEnabled = value
+        dimCurveLogBtn.isEnabled = value
     }
 
     public fun advancedClick(view: View) {
