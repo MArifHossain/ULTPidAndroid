@@ -15,14 +15,21 @@ import org.jetbrains.anko.toast
 import java.math.BigDecimal
 import android.view.MenuItem
 import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.driverList
-import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.standardMaxCurrent
-import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.standardMinCurrent
 import com.opencsv.CSVReader
 import java.io.InputStreamReader
 import java.io.Serializable
 import android.widget.ArrayAdapter
-
-
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.maxDimControlVoltage
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.maxDimCurrent
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.maxDimToOffVoltage
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.maxFullBrightVoltage
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.maxOutputCurrent
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.minDimControlVoltage
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.minDimCurrent
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.minDimToOffVoltage
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.minFullBrightVoltage
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.minOutputCurrent
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.reconfigureOptions
 
 
 /**
@@ -60,6 +67,7 @@ class MainActivity : AppCompatActivity() {
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this)
         ULTConfigurationOptions.setupOptions()
         setupUI()
+        readRanges()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -119,21 +127,22 @@ class MainActivity : AppCompatActivity() {
         // Show the Driver name TextView
         this.readDriverpn.visibility = View.VISIBLE
         this.readDriverpn.text = lookupCatalogNumber(NFCUtil.ultConfigManager.driverCatalogIDString)
+        setSliderValues(this.readDriverpn.text as String)
 
-        outputCurrentSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() - MIN_OUTPUT_CURRENT))
-        outputCurrentSlider.setProgress(((NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() - MIN_OUTPUT_CURRENT) * (standardMaxCurrent - standardMinCurrent)) / (standardMaxCurrent - standardMinCurrent))
+        outputCurrentSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() - minOutputCurrent))
+        outputCurrentSlider.setProgress(((NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() - minOutputCurrent) * (maxOutputCurrent    - minOutputCurrent)) / (maxOutputCurrent - minOutputCurrent))
 
-        minDimCurrentSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt()) - MIN_DIM_CURRENT)
-        minDimCurrentSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt() - MIN_DIM_CURRENT) * (MAX_DIM_CURRENT - MIN_DIM_CURRENT) / (MAX_DIM_CURRENT - MIN_DIM_CURRENT))
+        minDimCurrentSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt()) - minDimCurrent)
+        minDimCurrentSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt() - minDimCurrent) * (maxDimCurrent - minDimCurrent) / (maxDimCurrent - minDimCurrent))
 
-        fullBrightVoltageSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt()) - MIN_FULL_BRIGHT_VOLTAGE)
-        fullBrightVoltageSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt() - MIN_FULL_BRIGHT_VOLTAGE) * (MAX_FULL_BRIGHT_VOLTAGE - MIN_FULL_BRIGHT_VOLTAGE) / (MAX_FULL_BRIGHT_VOLTAGE - MIN_FULL_BRIGHT_VOLTAGE))
+        fullBrightVoltageSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt()) - minFullBrightVoltage)
+        fullBrightVoltageSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt() - minFullBrightVoltage) * (maxFullBrightVoltage - minFullBrightVoltage) / (maxFullBrightVoltage - minFullBrightVoltage))
 
-        minDimVoltageSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt()) - MIN_DIM_CONTROL_VOLTAGE)
-        minDimCurrentSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt() - MIN_DIM_CONTROL_VOLTAGE) * (MAX_DIM_CONTROL_VOLTAGE - MIN_DIM_CONTROL_VOLTAGE) / (MAX_DIM_CONTROL_VOLTAGE - MIN_DIM_CONTROL_VOLTAGE))
+        minDimVoltageSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt()) - minDimControlVoltage)
+        minDimCurrentSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt() - minDimControlVoltage) * (maxDimControlVoltage - minDimControlVoltage) / (maxDimControlVoltage - minDimControlVoltage))
 
-        dimToOffVoltageSpinner.setSelection(NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() -  MIN_DIM_TO_OFF_CONTROL_VOLTAGE)
-        dimToOffVoltageSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() -  MIN_DIM_TO_OFF_CONTROL_VOLTAGE) * (MAX_DIM_TO_OFF_CONTROL_VOLTAGE - MIN_DIM_TO_OFF_CONTROL_VOLTAGE) / (MAX_DIM_TO_OFF_CONTROL_VOLTAGE - MIN_DIM_TO_OFF_CONTROL_VOLTAGE))
+        dimToOffVoltageSpinner.setSelection(NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() -  minDimToOffVoltage)
+        dimToOffVoltageSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() -  minDimToOffVoltage) * (maxDimToOffVoltage - minDimToOffVoltage) / (maxDimToOffVoltage - minDimToOffVoltage))
         //TO DO: SET OTHER CONFIGURABLE PARAMTERS
 
         // Disable controls after updating values
@@ -174,6 +183,7 @@ class MainActivity : AppCompatActivity() {
 
             if(this.readDriverpn.text == "") {
                 this.driverpnSpinner.visibility = View.VISIBLE
+                this.readDriverpn.visibility = View.GONE
 
                 if(driverpnSpinner.selectedItemPosition != 0) {
                     setControlsEnabled(true)
@@ -193,6 +203,9 @@ class MainActivity : AppCompatActivity() {
             writeToggleButton.setTextColor(Color.BLACK)
             resetButton.background = getDrawable(R.drawable.button_border)
             resetButton.setTextColor(Color.BLACK)
+
+            this.driverpnSpinner.setSelection(0)
+            resetAll()
             // Remove the dropdown
             this.driverpnSpinner.visibility = View.GONE
 
@@ -216,40 +229,7 @@ class MainActivity : AppCompatActivity() {
 
             this.driverpnSpinner.setSelection(0)
 
-            ULTConfigurationOptions.outputPowerList.clear()
-            ULTConfigurationOptions.outputPowerOptionSet.clear()
-            var i: Int = MIN_OUTPUT_CURRENT
-            while (i <= MAX_OUTPUT_CURRENT){
-                ULTConfigurationOptions.outputPowerList.add("$i mA")
-                ULTConfigurationOptions.outputPowerOptionSet.add(i)
-                i += 1
-            }
-
-            initControls()
-
-            outputCurrentSpinner.setSelection(0)
-            minDimCurrentSpinner.setSelection(0)
-            minDimCurrentSlider.setProgress(0)
-            dimCurveLinearBtn.isChecked = false
-            dimCurveSftStrtBtn.isChecked = false
-            dimCurveLogBtn.isChecked = false
-            dimCurveSpinner.setSelection(0)
-            dimCurveSpinner.isEnabled = false
-
-            fullBrightVoltageSpinner.setSelection(0)
-            fullBrightVoltageSlider.setProgress(0)
-
-            minDimVoltageSpinner.setSelection(0)
-            minDimVoltageSlider.setProgress(0)
-
-            dimToOffVoltageSpinner.setSelection(0)
-            dimToOffVoltageSlider.setProgress(0)
-
-            NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent = MIN_OUTPUT_CURRENT.toShort()
-            NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent = MIN_DIM_CURRENT.toShort()
-            NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage = MIN_FULL_BRIGHT_VOLTAGE.toShort()
-            NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage = MIN_DIM_CONTROL_VOLTAGE.toShort()
-            NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage = MIN_DIM_TO_OFF_CONTROL_VOLTAGE.toShort()
+            resetAll()
 
             setControlsEnabled(false)
         })
@@ -537,12 +517,42 @@ class MainActivity : AppCompatActivity() {
                     filteredDrivers = filteredDrivers.filter(fun(row) = row[0] == (ULTConfigurationOptions.driverList[position])).toMutableList()
 
                     setUIValuesforDriver(filteredDrivers[0])
+                } else {
+                    resetAll()
                 }
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
             }
         }
+    }
+
+    private fun resetAll() {
+        initControls()
+
+        outputCurrentSpinner.setSelection(0)
+        minDimCurrentSpinner.setSelection(0)
+        minDimCurrentSlider.setProgress(0)
+        dimCurveLinearBtn.isChecked = false
+        dimCurveSftStrtBtn.isChecked = false
+        dimCurveLogBtn.isChecked = false
+        dimCurveSpinner.setSelection(0)
+        dimCurveSpinner.isEnabled = false
+
+        fullBrightVoltageSpinner.setSelection(0)
+        fullBrightVoltageSlider.setProgress(0)
+
+        minDimVoltageSpinner.setSelection(0)
+        minDimVoltageSlider.setProgress(0)
+
+        dimToOffVoltageSpinner.setSelection(0)
+        dimToOffVoltageSlider.setProgress(0)
+
+        NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent = MIN_OUTPUT_CURRENT.toShort()
+        NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent = MIN_DIM_CURRENT.toShort()
+        NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage = MIN_FULL_BRIGHT_VOLTAGE.toShort()
+        NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage = MIN_DIM_CONTROL_VOLTAGE.toShort()
+        NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage = MIN_DIM_TO_OFF_CONTROL_VOLTAGE.toShort()
     }
 
     private fun initControls() {
@@ -569,14 +579,20 @@ class MainActivity : AppCompatActivity() {
         this.dimCurveSpinner.adapter = dimCurveLogSpinnerAdapter
 
 
-        //SET SLIDER MAX VALUES. MAX VALUE IS EQUAL TO THE MAX NUMBER IN THE RANGE
-        outputCurrentSlider.max = MAX_OUTPUT_CURRENT - MIN_OUTPUT_CURRENT//standardMaxCurrent - standardMinCurrent
-        minDimCurrentSlider.max = MAX_DIM_CURRENT - MIN_DIM_CURRENT//253
-        fullBrightVoltageSlider.max = MAX_FULL_BRIGHT_VOLTAGE - MIN_FULL_BRIGHT_VOLTAGE//20//90-70
-        minDimVoltageSlider.max = MAX_DIM_CONTROL_VOLTAGE - MIN_DIM_CONTROL_VOLTAGE//30
-        dimToOffVoltageSlider.max = MAX_DIM_TO_OFF_CONTROL_VOLTAGE - MIN_DIM_TO_OFF_CONTROL_VOLTAGE//17
+        setSliderValues("")
 
         setControlsEnabled(false)
+    }
+
+    private fun setSliderValues(driverName: String) {
+        reconfigureOptions(driverName)
+
+        //SET SLIDER MAX VALUES. MAX VALUE IS EQUAL TO THE MAX NUMBER IN THE RANGE
+        outputCurrentSlider.max = maxOutputCurrent - minOutputCurrent// From ULTConfigurationOptions
+        minDimCurrentSlider.max = maxDimCurrent - minDimCurrent
+        fullBrightVoltageSlider.max = maxFullBrightVoltage - minFullBrightVoltage
+        minDimVoltageSlider.max = maxDimControlVoltage - minDimControlVoltage
+        dimToOffVoltageSlider.max = maxDimToOffVoltage - minDimToOffVoltage
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -623,7 +639,9 @@ class MainActivity : AppCompatActivity() {
                         if (extras != null) {
                             var selectedDriver = extras.get("DriverList") as List<String>
                             this.driverpnSpinner.setSelection(driverListAdapter!!.getPosition(selectedDriver[0]));
+                            this.readDriverpn.text = ""
                             setUIValuesforDriver(selectedDriver)
+                            writeToggleButton.callOnClick()
                         }
                     }
                 }
@@ -638,26 +656,15 @@ class MainActivity : AppCompatActivity() {
     private fun setUIValuesforDriver(selectedDriver: List<String>) {
         setControlsEnabled(true)
 
-        standardMaxCurrent = selectedDriver[selectedDriver.count() - 2].toInt()
-        standardMinCurrent = selectedDriver[selectedDriver.count() - 1].toInt()
+        setSliderValues(selectedDriver[0])
+
         var outputCurrent = selectedDriver[2].toInt()
-
-        ULTConfigurationOptions.outputPowerList.clear()
-        ULTConfigurationOptions.outputPowerOptionSet.clear()
-
-        var i: Int = standardMinCurrent
-        while (i <= standardMaxCurrent) {
-            ULTConfigurationOptions.outputPowerList.add("$i mA")
-            ULTConfigurationOptions.outputPowerOptionSet.add(i)
-            i += 1
-        }
 
         val outputCurrentSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.outputPowerList)
         this.outputCurrentSpinner.adapter = outputCurrentSpinnerAdapter
 
-        outputCurrentSlider.max = standardMaxCurrent - standardMinCurrent
-        outputCurrentSpinner.setSelection(outputCurrent - standardMinCurrent)
-        outputCurrentSlider.setProgress(((outputCurrent - standardMinCurrent) * (standardMaxCurrent - standardMinCurrent)) / (standardMaxCurrent - standardMinCurrent))
+        outputCurrentSpinner.setSelection(outputCurrent - minOutputCurrent)
+        outputCurrentSlider.setProgress(((outputCurrent - minOutputCurrent) * (maxOutputCurrent - minOutputCurrent)) / (maxOutputCurrent - minOutputCurrent))
 
         NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent = outputCurrent.toShort()
 
@@ -804,6 +811,29 @@ class MainActivity : AppCompatActivity() {
         }
         return ""
     }
+
+    private fun readRanges() {
+        try{
+            // If the file has already been read, nothing to do
+            if(ULTConfigurationOptions.rangeDictionary.count() > 0)
+                return
+
+            val reader = CSVReader(InputStreamReader(assets.open("ranges.csv")))
+
+            var nextLine = reader.readNext()
+            while (nextLine != null) {
+                // nextLine[] is an array of values from the line
+                if(nextLine.joinToString("").isNotBlank())  {
+                    ULTConfigurationOptions.rangeDictionary.add(nextLine.toMutableList())
+                }
+                nextLine = reader.readNext()
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
+        }
+    }
 }
 
 object ULTConfigurationOptions{
@@ -834,6 +864,18 @@ object ULTConfigurationOptions{
     var standardMaxCurrent = 1050
 
     var driverList:MutableList<String> = mutableListOf()
+    var rangeDictionary:MutableList<List<String>> = mutableListOf()
+
+    var minOutputCurrent : Int = MIN_OUTPUT_CURRENT
+    var maxOutputCurrent : Int = MAX_OUTPUT_CURRENT
+    var minDimCurrent : Int = MIN_DIM_CURRENT
+    var maxDimCurrent : Int = MAX_DIM_CURRENT
+    var minDimControlVoltage : Int = MIN_DIM_CONTROL_VOLTAGE
+    var maxDimControlVoltage : Int = MAX_DIM_CONTROL_VOLTAGE
+    var minFullBrightVoltage : Int = MIN_FULL_BRIGHT_VOLTAGE
+    var maxFullBrightVoltage : Int = MAX_FULL_BRIGHT_VOLTAGE
+    var minDimToOffVoltage : Int = MIN_DIM_TO_OFF_CONTROL_VOLTAGE
+    var maxDimToOffVoltage : Int = MAX_DIM_TO_OFF_CONTROL_VOLTAGE
 
     //SET OPTION RANGES
     fun setupOptions(){
@@ -893,6 +935,90 @@ object ULTConfigurationOptions{
         i = 0
         while (i <= 100){
             minDimCurrentPctList.add("$i %")
+            i += 1
+        }
+    }
+
+    //RE-CONFIGURE OPTION RANGES
+    fun reconfigureOptions(driverName: String){
+
+        var rangeRow = rangeDictionary.find(fun(row) = row[0] == driverName)
+
+        if(driverName.isNullOrBlank() || rangeRow == null) {  // Initialize with standard values if we do not have a specific driver
+            minOutputCurrent = MIN_OUTPUT_CURRENT
+            maxOutputCurrent = MAX_OUTPUT_CURRENT
+            minDimCurrent = MIN_DIM_CURRENT
+            maxDimCurrent = MAX_DIM_CURRENT
+            minDimControlVoltage = MIN_DIM_CONTROL_VOLTAGE
+            maxDimControlVoltage = MAX_DIM_CONTROL_VOLTAGE
+            minFullBrightVoltage = MIN_FULL_BRIGHT_VOLTAGE
+            maxFullBrightVoltage = MAX_FULL_BRIGHT_VOLTAGE
+            minDimToOffVoltage = MIN_DIM_TO_OFF_CONTROL_VOLTAGE
+            maxDimToOffVoltage = MAX_DIM_TO_OFF_CONTROL_VOLTAGE
+
+        } else {
+            minOutputCurrent = rangeRow[1].toInt()
+            maxOutputCurrent = rangeRow[2].toInt()
+            minDimCurrent = rangeRow[3].toInt()
+            maxDimCurrent = rangeRow[4].toInt()
+            minDimControlVoltage = rangeRow[5].toInt()
+            maxDimControlVoltage = rangeRow[6].toInt()
+            minFullBrightVoltage = rangeRow[7].toInt()
+            maxFullBrightVoltage = rangeRow[8].toInt()
+            minDimToOffVoltage = rangeRow[9].toInt()
+            maxDimToOffVoltage = rangeRow[10].toInt()
+        }
+
+        outputPowerList.clear()
+        outputPowerOptionSet.clear()
+        //minOutputCurrent <= OUTPUT CURRENT <=maxOutputCurrent
+        var i: Int = minOutputCurrent
+        while (i <= maxOutputCurrent){
+            outputPowerList.add("$i mA")
+            outputPowerOptionSet.add(i)
+            i += 1
+        }
+
+        minDimCurrentList.clear()
+        minDimCurrentOptionSet.clear()
+        //minDimCurrent <= MIN DIM CURRENT <= maxDimCurrent
+        i = minDimCurrent
+        while (i <= maxDimCurrent){
+            minDimCurrentList.add("$i mA")
+            minDimCurrentOptionSet.add(i)
+            i += 1
+        }
+
+        minDimControlVoltageList.clear()
+        minDimVoltageOptionSet.clear()
+        //minDimControlVoltage <= MIN DIM CONTROL VOLTAGE <= maxDimControlVoltage
+        //USING INTEGER VALUES BECAUSE ANDROID SLIDER ONLY ALLOWS INT, DIVIDE BY 10 BEFORE SET TAG MEM
+        i = minDimControlVoltage
+        while (i <= maxDimControlVoltage){
+            minDimControlVoltageList.add("${Math.round((i.toDouble()/10) * 100.00)/100.00} V")
+            minDimVoltageOptionSet.add(i)
+            i += 1
+        }
+
+        fullBrightControlVoltageList.clear()
+        fullBrightVoltageOptionSet.clear()
+        //minFullBrightVoltage <= FULL BRIGHT VOLTAGE <= maxFullBrightVoltage
+        //USING INTEGER VALUES BECAUSE ANDROID SLIDER ONLY ALLOWS INT, DIVIDE BY 10 BEFORE SET TAG MEM
+        i = minFullBrightVoltage
+        while (i <= maxFullBrightVoltage){
+            fullBrightControlVoltageList.add("${Math.round((i.toDouble()/10) * 100.00)/100.00} V")
+            fullBrightVoltageOptionSet.add(i)
+            i += 1
+        }
+
+        dimToOffControlVoltageList.clear()
+        dimToOffVoltageOptionset.clear()
+        //minDimToOffVoltage <= DIM TO OFF CONTROL VOLTAGE <= maxDimToOffVoltage
+        //USING INTEGER VALUES BECAUSE ANDROID SLIDER ONLY ALLOWS INT, DIVIDE BY 10 BEFORE SET TAG MEM
+        i = minDimToOffVoltage
+        while (i <= maxDimToOffVoltage){
+            dimToOffControlVoltageList.add("${Math.round((i.toDouble()/10) * 100.00)/100.00} V")
+            dimToOffVoltageOptionset.add(i)
             i += 1
         }
     }
