@@ -293,6 +293,8 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
+                outputCurrentSpinner.setSelection(outputCurrentSlider.progress)
+                NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent = (ULTConfigurationOptions.outputPowerOptionSet[outputCurrentSlider.progress]).toShort()
             }
         })
 
@@ -340,6 +342,9 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
+                minDimCurrentSpinner.setSelection(minDimCurrentSlider.progress)
+                NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent = (ULTConfigurationOptions.minDimCurrentOptionSet[minDimCurrentSlider.progress]).toShort()
+
             }
         })
 
@@ -405,6 +410,9 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
+                fullBrightVoltageSpinner.setSelection(fullBrightVoltageSlider.progress)
+                //SET VALUE IN TAG MEM MAP
+                NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage = (((ULTConfigurationOptions.fullBrightVoltageOptionSet[fullBrightVoltageSlider.progress]).toDouble() / 10) * 1000).toShort()
             }
         })
 
@@ -447,6 +455,9 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
+                minDimVoltageSpinner.setSelection(minDimVoltageSlider.progress)
+                NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage = ((ULTConfigurationOptions.minDimVoltageOptionSet[minDimVoltageSlider.progress].toDouble() / 10) * 1000).toShort()
+
             }
         })
 
@@ -488,6 +499,9 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
+                dimToOffVoltageSpinner.setSelection(dimToOffVoltageSlider.progress)
+                NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage = ((ULTConfigurationOptions.dimToOffVoltageOptionset[dimToOffVoltageSlider.progress].toDouble() / 10) * 1000).toShort()
+
             }
         })
 
