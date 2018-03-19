@@ -28,11 +28,11 @@ class scrollViewAdapter(private val dataSet: ArrayList<DataModel_Driver>, intern
     }
 
     override fun onClick(v: View) {
-        val position = v.getTag() as Int
+        val position = v.tag as Int
         val `object` = getItem(position)
         val dataModel = `object` as DataModel_Driver
 
-        when (v.getId()) {
+        when (v.id) {
             R.id.select_button -> {
                 var activity = v.context as Activity
                 activity.run{
@@ -53,21 +53,21 @@ class scrollViewAdapter(private val dataSet: ArrayList<DataModel_Driver>, intern
         val result: View
         if (convertView == null) {
             viewHolder = ViewHolder()
-            val inflater = LayoutInflater.from(getContext())
+            val inflater = LayoutInflater.from(context)
             convertView = inflater.inflate(R.layout.search_row, parent, false)
             viewHolder.image = convertView!!.findViewById(R.id.driver_image)
-            viewHolder.partNumber = convertView!!.findViewById<TextView>(R.id.partNumber)
-            viewHolder.outputCurrent = convertView!!.findViewById<TextView>(R.id.outputCurrent)
-            viewHolder.dimmingControlType = convertView!!.findViewById<TextView>(R.id.dimmingControlType)
-            viewHolder.dimensions = convertView!!.findViewById<TextView>(R.id.dimensions)
-            viewHolder.maxRatedPower = convertView!!.findViewById<TextView>(R.id.maxRatedPower)
-            viewHolder.minVoltage = convertView!!.findViewById<TextView>(R.id.minVoltage)
-            viewHolder.maxVoltage = convertView!!.findViewById<TextView>(R.id.maxVoltage)
-            viewHolder.selectButton = convertView!!.findViewById<TextView>(R.id.select_button)
+            viewHolder.partNumber = convertView.findViewById<TextView>(R.id.partNumber)
+            viewHolder.outputCurrent = convertView.findViewById<TextView>(R.id.outputCurrent)
+            viewHolder.dimmingControlType = convertView.findViewById<TextView>(R.id.dimmingControlType)
+            viewHolder.dimensions = convertView.findViewById<TextView>(R.id.dimensions)
+            viewHolder.maxRatedPower = convertView.findViewById<TextView>(R.id.maxRatedPower)
+            viewHolder.minVoltage = convertView.findViewById<TextView>(R.id.minVoltage)
+            viewHolder.maxVoltage = convertView.findViewById<TextView>(R.id.maxVoltage)
+            viewHolder.selectButton = convertView.findViewById<TextView>(R.id.select_button)
             result = convertView
-            convertView!!.setTag(viewHolder)
+            convertView.tag = viewHolder
         } else {
-            viewHolder = convertView!!.getTag() as ViewHolder
+            viewHolder = convertView.tag as ViewHolder
             result = convertView
         }
 
@@ -82,16 +82,16 @@ class scrollViewAdapter(private val dataSet: ArrayList<DataModel_Driver>, intern
         else if(dataModel.imageName.trim().toLowerCase() == "l")
             viewHolder.image!!.setImageResource(R.drawable.driver_image_l)
         viewHolder.image
-        viewHolder.partNumber!!.setText(dataModel.partNumber)
-        viewHolder.outputCurrent!!.setText(dataModel.outputCurrent)
-        viewHolder.dimmingControlType!!.setText(dataModel.dimmingControlType)
-        viewHolder.dimensions!!.setText(dataModel.dimensions)
-        viewHolder.maxRatedPower!!.setText(dataModel.maxRatedPower)
-        viewHolder.minVoltage!!.setText(dataModel.minVoltage)
-        viewHolder.maxVoltage!!.setText(dataModel.maxVoltage)
+        viewHolder.partNumber!!.text = dataModel.partNumber
+        viewHolder.outputCurrent!!.text = dataModel.outputCurrent
+        viewHolder.dimmingControlType!!.text = dataModel.dimmingControlType
+        viewHolder.dimensions!!.text = dataModel.dimensions
+        viewHolder.maxRatedPower!!.text = dataModel.maxRatedPower
+        viewHolder.minVoltage!!.text = dataModel.minVoltage
+        viewHolder.maxVoltage!!.text = dataModel.maxVoltage
 
         viewHolder.selectButton!!.setOnClickListener(this)
-        viewHolder.selectButton!!.setTag(position)
+        viewHolder.selectButton!!.tag = position
         return convertView
     }// Get the data item for this position
     // Check if an existing view is being reused, otherwise inflate the view

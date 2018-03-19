@@ -23,7 +23,7 @@ class SearchResult : AppCompatActivity() {
         val adapter = scrollViewAdapter(dataModels, this)
 
         val listView = findViewById<ListView>(R.id.searchList) as ListView
-        listView.setAdapter(adapter)
+        listView.adapter = adapter
         listView.emptyView = findViewById(R.id.list_empty)
     }
 }

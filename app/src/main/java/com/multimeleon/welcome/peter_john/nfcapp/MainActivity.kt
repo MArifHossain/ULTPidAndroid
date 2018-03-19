@@ -30,6 +30,14 @@ import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.minDimT
 import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.minFullBrightVoltage
 import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.minOutputCurrent
 import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.reconfigureOptions
+import kotlinx.android.synthetic.main.search_row.*
+import kotlin.experimental.and
+import kotlin.experimental.or
+
+
+var LINEAR_CURVE = 0b00000000
+var SOFT_START_CURVE = 0b00010000
+var LOGERITHMIC_CURVE = 0b00001000
 
 
 /**
@@ -47,7 +55,7 @@ class MainActivity : AppCompatActivity() {
     var catalogDictionary:MutableList<List<String>> = mutableListOf()
     var rdocIndex:Int = 0
     var driverRanges:MutableList<List<String>> = mutableListOf()
-    var driverListAdapter: ArrayAdapter<String>? = null;
+    var driverListAdapter: ArrayAdapter<String>? = null
 
     //CONVIENECE
     var currentConfig = NFCUtil.ultConfigManager.pendingConfiguration
@@ -130,20 +138,38 @@ class MainActivity : AppCompatActivity() {
         setSliderValues(this.readDriverpn.text as String)
 
         outputCurrentSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() - minOutputCurrent))
-        outputCurrentSlider.setProgress(((NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() - minOutputCurrent) * (maxOutputCurrent    - minOutputCurrent)) / (maxOutputCurrent - minOutputCurrent))
+        //outputCurrentSlider.setProgress(((NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() - minOutputCurrent) * (maxOutputCurrent - minOutputCurrent)) / (maxOutputCurrent - minOutputCurrent))
 
         minDimCurrentSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt()) - minDimCurrent)
-        minDimCurrentSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt() - minDimCurrent) * (maxDimCurrent - minDimCurrent) / (maxDimCurrent - minDimCurrent))
+        //minDimCurrentSlider.setProgress(((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt() - minDimCurrent) * (maxDimCurrent - minDimCurrent)) / (maxDimCurrent - minDimCurrent))
 
         fullBrightVoltageSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt()) - minFullBrightVoltage)
-        fullBrightVoltageSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt() - minFullBrightVoltage) * (maxFullBrightVoltage - minFullBrightVoltage) / (maxFullBrightVoltage - minFullBrightVoltage))
+        //fullBrightVoltageSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt() - minFullBrightVoltage) * (maxFullBrightVoltage - minFullBrightVoltage) / (maxFullBrightVoltage - minFullBrightVoltage))
 
         minDimVoltageSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt()) - minDimControlVoltage)
-        minDimCurrentSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt() - minDimControlVoltage) * (maxDimControlVoltage - minDimControlVoltage) / (maxDimControlVoltage - minDimControlVoltage))
+        //minDimCurrentSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt() - minDimControlVoltage) * (maxDimControlVoltage - minDimControlVoltage) / (maxDimControlVoltage - minDimControlVoltage))
 
         dimToOffVoltageSpinner.setSelection(NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() -  minDimToOffVoltage)
-        dimToOffVoltageSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() -  minDimToOffVoltage) * (maxDimToOffVoltage - minDimToOffVoltage) / (maxDimToOffVoltage - minDimToOffVoltage))
+        //dimToOffVoltageSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() -  minDimToOffVoltage) * (maxDimToOffVoltage - minDimToOffVoltage) / (maxDimToOffVoltage - minDimToOffVoltage))
         //TO DO: SET OTHER CONFIGURABLE PARAMTERS
+
+        if(NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve == LINEAR_CURVE.toShort()) {
+            dimCurveLinearBtn.isChecked = true
+            dimCurveSftStrtBtn.isChecked = false
+            dimCurveLogBtn.isChecked = false
+        }
+        else if(NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve == SOFT_START_CURVE.toShort()) {
+            dimCurveLinearBtn.isChecked = false
+            dimCurveSftStrtBtn.isChecked = true
+            dimCurveLogBtn.isChecked = false
+        }
+        else if(NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve > LOGERITHMIC_CURVE.toShort()) {
+            var pos = (NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve - LOGERITHMIC_CURVE.toShort())
+            dimCurveSpinner.setSelection(pos)
+            dimCurveLinearBtn.isChecked = false
+            dimCurveSftStrtBtn.isChecked = false
+            dimCurveLogBtn.isChecked = true
+        }
 
         // Disable controls after updating values
         setControlsEnabled(false)
@@ -171,7 +197,7 @@ class MainActivity : AppCompatActivity() {
         this.readDriverpn.visibility = View.GONE
 
         //SET HANDLER FOR WRITE TOGGLE BUTTON
-        this.writeToggleButton.setOnClickListener(View.OnClickListener()  { view ->
+        this.writeToggleButton.setOnClickListener(View.OnClickListener { view ->
             println("write button is selected, de-select read and reset")
             read = false
             view.background = getDrawable(R.drawable.button_highlight)
@@ -194,7 +220,7 @@ class MainActivity : AppCompatActivity() {
         })
 
         //SET HANDLER FOR READ TOGGLE BUTTON
-        this.readToggleButton.setOnClickListener(View.OnClickListener()  { view ->
+        this.readToggleButton.setOnClickListener(View.OnClickListener { view ->
             println("read button is selected, de-select write and reset")
             read = true
             view.background = getDrawable(R.drawable.button_highlight)
@@ -213,7 +239,7 @@ class MainActivity : AppCompatActivity() {
         })
 
         //SET HANDLER FOR RESET TOGGLE BUTTON
-        this.resetButton.setOnClickListener(View.OnClickListener()  { view ->
+        this.resetButton.setOnClickListener(View.OnClickListener { view ->
             println("reset button is selected, de-select read and write")
             read = false
             view.background = getDrawable(R.drawable.button_highlight)
@@ -234,7 +260,7 @@ class MainActivity : AppCompatActivity() {
             setControlsEnabled(false)
         })
 
-        //LINEAR DIMMING CURVE RADIO BUTTON
+        //LINEAR DIMMING CURVE RADIO BUTTON: Linear
         dimCurveLinearBtn.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked) {
                 println("Dim Curve Linear Button Set")
@@ -243,10 +269,12 @@ class MainActivity : AppCompatActivity() {
                 dimCurveLogBtn.isChecked = false
                 dimCurveSpinner.isEnabled = false
 
+                NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve = LINEAR_CURVE.toShort()
+
             }
         }
 
-        //SOFT START DIMMING CURVE RADIO BUTTON
+        //SOFT START DIMMING CURVE RADIO BUTTON: Soft Start
         dimCurveSftStrtBtn.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked) {
                 println("Dim Curve Soft Start Button Set")
@@ -254,10 +282,12 @@ class MainActivity : AppCompatActivity() {
                 dimCurveLinearBtn.isChecked = false
                 dimCurveLogBtn.isChecked = false
                 dimCurveSpinner.isEnabled = false
+
+                NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve = SOFT_START_CURVE.toShort()
             }
         }
 
-        //LOGARITHMIC DIMMING CURVE RADIO BUTTON
+        //LOGARITHMIC DIMMING CURVE RADIO BUTTON: Exponential
         dimCurveLogBtn.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked) {
                 println("Dim Curve Log Button Set")
@@ -265,6 +295,8 @@ class MainActivity : AppCompatActivity() {
                 dimCurveSftStrtBtn.isChecked = false
                 dimCurveLinearBtn.isChecked = false
                 dimCurveSpinner.isEnabled = true
+
+                NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve = LOGERITHMIC_CURVE.toShort()
             }
         }
 
@@ -530,10 +562,29 @@ class MainActivity : AppCompatActivity() {
                     var filteredDrivers:MutableList<List<String>> = driverDictionary
                     filteredDrivers = filteredDrivers.filter(fun(row) = row[0] == (ULTConfigurationOptions.driverList[position])).toMutableList()
 
-                    setUIValuesforDriver(filteredDrivers[0])
+                    //setUIValuesforDriver(filteredDrivers[0])
                 } else {
                     resetAll()
                 }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+            }
+        }
+
+
+        //LOGERITHMIC INDEX SPINNER
+        this.dimCurveSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+
+                //leavingDimToOffVoltageSpinner = true
+                //dimToOffVoltageSlider.setProgress(position, true)
+                //leavingDimToOffVoltageSlider = false
+
+                //SET VALUE IN TAG MEM MAP
+                var dimVal = ((LOGERITHMIC_CURVE.toByte()).or((position.toByte()))).toShort()
+                NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve = dimVal
+                printConfig()
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -546,7 +597,7 @@ class MainActivity : AppCompatActivity() {
 
         outputCurrentSpinner.setSelection(0)
         minDimCurrentSpinner.setSelection(0)
-        minDimCurrentSlider.setProgress(0)
+        minDimCurrentSlider.progress = 0
         dimCurveLinearBtn.isChecked = false
         dimCurveSftStrtBtn.isChecked = false
         dimCurveLogBtn.isChecked = false
@@ -554,19 +605,20 @@ class MainActivity : AppCompatActivity() {
         dimCurveSpinner.isEnabled = false
 
         fullBrightVoltageSpinner.setSelection(0)
-        fullBrightVoltageSlider.setProgress(0)
+        fullBrightVoltageSlider.progress = 0
 
         minDimVoltageSpinner.setSelection(0)
-        minDimVoltageSlider.setProgress(0)
+        minDimVoltageSlider.progress = 0
 
         dimToOffVoltageSpinner.setSelection(0)
-        dimToOffVoltageSlider.setProgress(0)
+        dimToOffVoltageSlider.progress = 0
 
         NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent = MIN_OUTPUT_CURRENT.toShort()
         NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent = MIN_DIM_CURRENT.toShort()
         NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage = MIN_FULL_BRIGHT_VOLTAGE.toShort()
         NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage = MIN_DIM_CONTROL_VOLTAGE.toShort()
         NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage = MIN_DIM_TO_OFF_CONTROL_VOLTAGE.toShort()
+        NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve = DEFAULT_DIM_CURVE.toShort()
     }
 
     private fun initControls() {
@@ -615,18 +667,18 @@ class MainActivity : AppCompatActivity() {
 
                 val intent1 = Intent(this, SearchActivity::class.java)
                 this.startActivityForResult(intent1, SEARCH)
-                return true;
+                return true
             }
 
             else -> {
                 // If we got here, the user's action was not recognized.
                 // Invoke the superclass to handle it.
-                return super.onOptionsItemSelected(item);
+                return super.onOptionsItemSelected(item)
             }
         }
     }
 
-    public fun searchClick(view: View) {
+    fun searchClick(view: View) {
         val intent1 = Intent(this, SearchActivity::class.java)
         this.startActivityForResult(intent1, SEARCH)
     }
@@ -652,7 +704,7 @@ class MainActivity : AppCompatActivity() {
                         val extras = intent!!.extras
                         if (extras != null) {
                             var selectedDriver = extras.get("DriverList") as List<String>
-                            this.driverpnSpinner.setSelection(driverListAdapter!!.getPosition(selectedDriver[0]));
+                            this.driverpnSpinner.setSelection(driverListAdapter!!.getPosition(selectedDriver[0]))
                             this.readDriverpn.text = ""
                             setUIValuesforDriver(selectedDriver)
                             writeToggleButton.callOnClick()
@@ -678,12 +730,12 @@ class MainActivity : AppCompatActivity() {
         this.outputCurrentSpinner.adapter = outputCurrentSpinnerAdapter
 
         outputCurrentSpinner.setSelection(outputCurrent - minOutputCurrent)
-        outputCurrentSlider.setProgress(((outputCurrent - minOutputCurrent) * (maxOutputCurrent - minOutputCurrent)) / (maxOutputCurrent - minOutputCurrent))
+        outputCurrentSlider.progress = ((outputCurrent - minOutputCurrent) * (maxOutputCurrent - minOutputCurrent)) / (maxOutputCurrent - minOutputCurrent)
 
         NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent = outputCurrent.toShort()
 
         minDimCurrentSpinner.setSelection(0)
-        minDimCurrentSlider.setProgress(0)
+        minDimCurrentSlider.progress = 0
         NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent = (ULTConfigurationOptions.minDimCurrentOptionSet[0]).toShort()
 
         dimCurveLinearBtn.isChecked = false
@@ -693,15 +745,15 @@ class MainActivity : AppCompatActivity() {
         dimCurveSpinner.isEnabled = false
 
         fullBrightVoltageSpinner.setSelection(10)
-        fullBrightVoltageSlider.setProgress(10)
+        fullBrightVoltageSlider.progress = 10
         NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage = (((ULTConfigurationOptions.fullBrightVoltageOptionSet[10]).toDouble() / 10) * 1000).toShort()
 
         minDimVoltageSpinner.setSelection(10)
-        minDimVoltageSlider.setProgress(10)
+        minDimVoltageSlider.progress = 10
         NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage = ((ULTConfigurationOptions.minDimVoltageOptionSet[10].toDouble() / 10) * 1000).toShort()
 
         dimToOffVoltageSpinner.setSelection(0)
-        dimToOffVoltageSlider.setProgress(0)
+        dimToOffVoltageSlider.progress = 0
         NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage = ((ULTConfigurationOptions.dimToOffVoltageOptionset[0].toDouble() / 10) * 1000).toShort()
     }
 
@@ -723,7 +775,7 @@ class MainActivity : AppCompatActivity() {
         dimCurveLogBtn.isEnabled = value
     }
 
-    public fun advancedClick(view: View) {
+    fun advancedClick(view: View) {
         // Remove the Advanced button
         findViewById<TextView>(R.id.advancedButton).visibility = View.GONE
 
@@ -777,7 +829,7 @@ class MainActivity : AppCompatActivity() {
                 var rows = driverMap.get(driver)
 
                 var maxCurrent = rows!!.first()[rdocIndex]
-                var minCurrent = rows!!.last()[rdocIndex]
+                var minCurrent = rows.last()[rdocIndex]
 
                 driverRanges.add(listOf(driver, maxCurrent, minCurrent))
                 driverList.add(driver)
@@ -800,7 +852,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun lookupCatalogNumber(catalogID: String) : String {
+    public fun lookupCatalogNumber(catalogID: String) : String {
         try{
             // If the file has already been read, nothing to do
             if(catalogDictionary.count() > 0)
@@ -810,11 +862,14 @@ class MainActivity : AppCompatActivity() {
 
             var nextLine = reader.readNext()
             while (nextLine != null) {
+                //if(nextLine. == "")
+                    //continue;
                 // nextLine[] is an array of values from the line
                 if(nextLine.joinToString("").isNotBlank())  {
                     catalogDictionary.add(nextLine.toMutableList())
                 }
                 nextLine = reader.readNext()
+                println("Lookup Catalog Number = $nextLine.")
             }
 
             return catalogDictionary.find(fun(row) = row[0] == catalogID)!![1]
@@ -890,6 +945,7 @@ object ULTConfigurationOptions{
     var maxFullBrightVoltage : Int = MAX_FULL_BRIGHT_VOLTAGE
     var minDimToOffVoltage : Int = MIN_DIM_TO_OFF_CONTROL_VOLTAGE
     var maxDimToOffVoltage : Int = MAX_DIM_TO_OFF_CONTROL_VOLTAGE
+
 
     //SET OPTION RANGES
     fun setupOptions(){

@@ -46,7 +46,7 @@ class SearchActivity : AppCompatActivity() {
 
     }
 
-    public fun searchClick(view: View) {
+    fun searchClick(view: View) {
 
         try {
             // Get Driver Input Voltage Spinner value
@@ -65,7 +65,7 @@ class SearchActivity : AppCompatActivity() {
 
             if(rdoc == 0.0f) {  // This is a required field
 
-                mEditTextRdoc.setError("Please enter the Output Current")
+                mEditTextRdoc.error = "Please enter the Output Current"
                 return
             }
                 // Get Rated Driver Output Power EditText value
@@ -136,7 +136,7 @@ class SearchActivity : AppCompatActivity() {
                 var rows = driverMap.get(driver)
 
                 var maxCurrent = rows!!.first()[rdocIndex]
-                var minCurrent = rows!!.last()[rdocIndex]
+                var minCurrent = rows.last()[rdocIndex]
 
                 driverRanges.add(listOf(driver, maxCurrent, minCurrent))
             }

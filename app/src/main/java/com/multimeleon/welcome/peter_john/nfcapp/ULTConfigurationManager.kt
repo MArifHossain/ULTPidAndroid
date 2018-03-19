@@ -14,6 +14,17 @@ import java.io.IOException
 import kotlin.experimental.and
 import java.nio.charset.Charset
 
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.maxDimControlVoltage
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.maxDimCurrent
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.maxDimToOffVoltage
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.maxFullBrightVoltage
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.maxOutputCurrent
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.minDimControlVoltage
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.minDimCurrent
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.minDimToOffVoltage
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.minFullBrightVoltage
+import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.minOutputCurrent
+
 /**
  * Created by joebakalor on 11/7/17.
  */
@@ -33,8 +44,9 @@ var MAX_FULL_BRIGHT_VOLTAGE = 90 //VOLTS * 10
 var MIN_DIM_TO_OFF_CONTROL_VOLTAGE = 0 //VOLTS * 10
 var MAX_DIM_TO_OFF_CONTROL_VOLTAGE = 17 //VOLTS * 10
 
-class ULTConfigurationManager()
-{
+var DEFAULT_DIM_CURVE = 0 // "Linear"
+
+class ULTConfigurationManager {
 
     data class ULTConfiguration(var outputCurrent: Short,
                                 var minDimCurrent: Short,
@@ -54,9 +66,7 @@ class ULTConfigurationManager()
         DIM_TO_OFF_CONTROL_VOLTAGE
     }
 
-    enum class DriverModels{
-
-    }
+    enum class DriverModels
 
     //STORE FORMATTED STATIC CONFIGURATION READ FROM DRIVER
     private var staticDataConfiguration: ArrayList<ByteArray> = arrayListOf(
@@ -72,24 +82,24 @@ class ULTConfigurationManager()
 
     //STORE PENDING MDC WRITE TUNING DATA COMMAND
     var MDCPendingCommand: ArrayList<ByteArray> = arrayListOf(
-            byteArrayOf(0x27, 0x05, 0x00, 0x00),
-            byteArrayOf(0x00, 0x00, 0x00, 0x00),
-            byteArrayOf(0x00, 0x00, 0x00, 0x00),
-            byteArrayOf(0x00, 0x00, 0x00, 0x00),
+            byteArrayOf(0x27, 0x05, 0x00, 0x00),//30
+            byteArrayOf(0x00, 0x00, 0x00, 0x00),//31
+            byteArrayOf(0x00, 0x00, 0x00, 0x00),//32
+            byteArrayOf(0x00, 0x00, 0x00, 0x00),//33
 
-            byteArrayOf(0x00, 0x00, 0x00, 0x00),
-            byteArrayOf(0x00, 0x00, 0x00, 0x00),
-            byteArrayOf(0x00, 0x00, 0x00, 0x00),
-            byteArrayOf(0x00, 0x00, 0x00, 0x00),
+            byteArrayOf(0x00, 0x00, 0x00, 0x00),//34
+            byteArrayOf(0x00, 0x00, 0x00, 0x00),//35
+            byteArrayOf(0x00, 0x00, 0x00, 0x00),//36
+            byteArrayOf(0x00, 0x00, 0x00, 0x00),//37
 
-            byteArrayOf(0x00, 0x00, 0x00, 0x00),
-            byteArrayOf(0x00, 0x00, 0x00, 0x00)
+            byteArrayOf(0x00, 0x00, 0x00, 0x00),//38
+            byteArrayOf(0x00, 0x00, 0x00, 0x00) //39
     )
 
 
 
     // Driver Catalog ID string
-    var driverCatalogIDString = "";
+    var driverCatalogIDString = ""
     //CONFIGURATION READ FROM DRVIER
     var currentConfiguration = ULTConfiguration(0,0,0,0,0,0)
     //USER CONFIGURATION
@@ -132,7 +142,7 @@ class ULTConfigurationManager()
 
         //COPY DATA READ FROM TUNING DATA BLOCK TO SET AREAS,THE USER WONT
         //CONFIGURE
-        var i = 0
+        var i = 4
         MDCPendingCommand[1][0] = tuningDataBytes[i]; i++
         MDCPendingCommand[1][1] = tuningDataBytes[i]; i++
         MDCPendingCommand[1][2] = tuningDataBytes[i]; i++
@@ -143,8 +153,8 @@ class ULTConfigurationManager()
         MDCPendingCommand[2][2] = tuningDataBytes[i]; i++
         MDCPendingCommand[2][3] = tuningDataBytes[i]; i++
 
-        val outputCurrent = (Math.round((((((((MDCPendingCommand[2][1]).toInt()).and(255)).shl(8)).or((MDCPendingCommand[2][0]).toInt() and 255)).toDouble()/65535)* MAX_OUTPUT_CURRENT))).toInt()
-        val minDimCurrent = (Math.round((((((((MDCPendingCommand[2][3]).toInt()).and(255)).shl(8)).or((MDCPendingCommand[2][2]).toInt() and 255)).toDouble()/65535)* MAX_DIM_CURRENT))).toInt()
+        val outputCurrent = (Math.round((((((((MDCPendingCommand[2][1]).toInt()).and(0xff)).shl(8)).or((MDCPendingCommand[2][0]).toInt().and (0x00ff)).toDouble()/0xffff)* maxOutputCurrent))).toInt())
+        val minDimCurrent = (Math.round((((((((MDCPendingCommand[2][3]).toInt()).and(0xff)).shl(8)).or((MDCPendingCommand[2][2]).toInt().and (0x00ff)).toDouble())/0xffff)* maxOutputCurrent))).toInt()
 
 
 
@@ -172,6 +182,7 @@ class ULTConfigurationManager()
             pendingConfiguration.fullBrightControlVoltage = brightVoltage.toShort()
             pendingConfiguration.minDimControlVoltage = dimVoltage.toShort()
             pendingConfiguration.dimToOffControlVoltage = dimToOffVoltage.toShort()
+            pendingConfiguration.dimmingCurve = tuningDataBytes[2].toShort()
             println("READ OUTPUT CURRENT = $outputCurrent, READ MIN DIM CURRENT = $minDimCurrent, READ BRIGHT VOLTAGE = $brightVoltage")
         }
 
@@ -197,7 +208,7 @@ class ULTConfigurationManager()
         MDCPendingCommand[8][3] = tuningDataBytes[i]; i++
 
         MDCPendingCommand[9][0] = tuningDataBytes[i]; i++
-        MDCPendingCommand[9][1] = tuningDataBytes[i];
+        MDCPendingCommand[9][1] = tuningDataBytes[i]
 
 
         //MDCPendingCommand[9][2] = tuningDataBytes[i]; i++
@@ -210,13 +221,16 @@ class ULTConfigurationManager()
     //CREATE MDC PROTOCOL PACKET TO CONFIGURE TUNING DATA
     fun ULTCreateMDCProtocolPacket(): ArrayList<ByteArray>{
 
+        //SET DIM CURVE
+        MDCPendingCommand[0][2] = pendingConfiguration.dimmingCurve.toByte()
+
         //SET OUTPUT CURRENT IN MDC COMMAND PACKET
-        val mdcTrimBaseVal =  ((pendingConfiguration.outputCurrent.toDouble()/ MAX_OUTPUT_CURRENT) * 65535).toShort()
+        val mdcTrimBaseVal =  ((pendingConfiguration.outputCurrent.toDouble()/ maxOutputCurrent) * 65535).toShort()
         MDCPendingCommand[2][0] = mdcTrimBaseVal.and(0xff).toByte()
         MDCPendingCommand[2][1] = ((((mdcTrimBaseVal).and(0xff00.toShort())).toInt()).shr(8)).toByte()
 
         //SET DIM CURRENT
-        val mdcTrimFloor = ((pendingConfiguration.minDimCurrent.toDouble()/ MAX_DIM_CURRENT) * 65535).toShort()
+        val mdcTrimFloor = ((pendingConfiguration.minDimCurrent.toDouble()/ maxDimCurrent) * 65535).toShort()
         MDCPendingCommand[2][2] = mdcTrimFloor.and(0xff).toByte()
         MDCPendingCommand[2][3] = ((((mdcTrimFloor).and(0xff00.toShort())).toInt()).shr(8)).toByte()
 
@@ -232,7 +246,7 @@ class ULTConfigurationManager()
 
         //SET DIM TO OFF VOLTAGE
         val mdcDimToOffVoltage = pendingConfiguration.dimToOffControlVoltage.toShort()
-        MDCPendingCommand[4][0] = mdcDimToOffVoltage.and(0xff).toByte()
+        MDCPendingCommand[4][0] = mdcDimToOffVoltage.toByte()
         MDCPendingCommand[4][1] = ((((mdcDimToOffVoltage).and(0xff00.toShort())).toInt()).shr(8)).toByte()
 
         //TO DO:  POPULATE ADDITIONAL CONFIGURATION PARAMETERS FOR DRIVERS THAT SUPPORT THEM,
@@ -285,5 +299,4 @@ class ULTConfigurationManager()
         //NOT IMPLEMENTED, NEED TO ADD LOGIC TO PARSE
         //LOG DATA FROM BYTE ARRAY
     }
-
 }

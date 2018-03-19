@@ -91,6 +91,9 @@ object NFCUtil {
                         recieveStaticConfigBlocks(staticConfigBytes.toByteArray())
                         receiveDriverCatalogID()
 
+                        //After receiving driver CatalogID we need to get the driver name from the lookupCatalogNumber()
+                        //ULTConfigurationOptions.reconfigureOptions(DriverName)
+
                         //READ TUNING DATA FROM TAG 48 ==> 9 BLOCKS
 
                         //ADD CHECK TO SEE IF THERE IS A PENDING COMMAND IN THE
@@ -103,12 +106,13 @@ object NFCUtil {
                         //RIGHT NOW JUST CHECKING IF THE MESSAGE SIZE IS NOT 0
                         if (data[0] != 0x00.toByte()){
                             println("MDC Command present in buffer 96")
+                            tuningData.addAll(data.toList())
                             mdcCommandFound = true
-                            data = it.readPages(97)
+                            data = it.readPages(100)
                             tuningData.addAll(data.toList())
-                            data = it.readPages(101)
+                            data = it.readPages(104)
                             tuningData.addAll(data.toList())
-                            data = it.readPages(105)
+                            data = it.readPages(108)
                             tuningData.addAll(data.toList())
 
                             //PROCESS TUNING DATA READ FROM DRIVER
@@ -181,11 +185,21 @@ object NFCUtil {
 
                         it.close()
 
-                    } catch (e: TagLostException){
+                    } catch (e: Exception){
 
-                        println("Tag lost during communication")
+                        // printStackTrace method
+                        // prints line numbers + call stack
+                        e.printStackTrace()
+
+                        // Prints what exception has been thrown
+                        System.out.println(e)
                         return false
                     }
+                    //catch (e: TagLostException){
+
+                    //    println("Tag lost during communication")
+                    //    return false
+                    //}
 
                     return true
                 }
