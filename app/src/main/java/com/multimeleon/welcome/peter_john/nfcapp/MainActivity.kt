@@ -60,6 +60,7 @@ class MainActivity : AppCompatActivity() {
     var rdocIndex:Int = 0
     var driverRanges:MutableList<List<String>> = mutableListOf()
     var driverListAdapter: ArrayAdapter<String>? = null
+    var selectedDriverModel: String = ""
 
     //CONVIENECE
     var currentConfig = NFCUtil.ultConfigManager.pendingConfiguration
@@ -125,11 +126,16 @@ class MainActivity : AppCompatActivity() {
 
             //FIRST POPULATE VALUES NOT CONFIGURED BY USER SO WE DONT OVERWRITE WITH BAD DATA
             val configReadSuccessfully = NFCUtil.ULTReadConfiguration(intent, true)
+
             //NOW WRITE THE CONFIGURATION
             if (configReadSuccessfully){
-                val messageWrittenSuccessfully = NFCUtil.ULTWriteConfiguration(intent)//NFCUtil.createNFCMessage("FAKE MESSAGE", intent)
-                //LET USER KNOW IF THE DRIVER WAS CONFIGURED SUCCESSFULLY
-                toast(messageWrittenSuccessfully.ifElse("Successful Written to Tag", "Tag Communication Interrupted"))
+                if(ULTConfigurationOptions.lookupCatalogNumber(NFCUtil.ultConfigManager.driverCatalogIDString) == selectedDriverModel) {
+                    val messageWrittenSuccessfully = NFCUtil.ULTWriteConfiguration(intent)//NFCUtil.createNFCMessage("FAKE MESSAGE", intent)
+                    //LET USER KNOW IF THE DRIVER WAS CONFIGURED SUCCESSFULLY
+                    toast(messageWrittenSuccessfully.ifElse("Successful Written to Tag", "Tag Communication Interrupted"))
+                } else {
+                    toast("Wrong Driver Model")
+                }
             } else {
                 toast("Tag Communication Interrupted")
             }
@@ -590,7 +596,8 @@ class MainActivity : AppCompatActivity() {
                     var filteredDrivers:MutableList<List<String>> = driverDictionary
                     filteredDrivers = filteredDrivers.filter(fun(row) = row[0] == (ULTConfigurationOptions.driverList[position])).toMutableList()
 
-                    //setUIValuesforDriver(filteredDrivers[0])
+                    selectedDriverModel = filteredDrivers[0].toString()  // Set the name of the driver, so we can verify while writing
+                    setUIValuesforDriver(filteredDrivers[0])
                 } else {
                     resetAll()
                 }
@@ -734,6 +741,7 @@ class MainActivity : AppCompatActivity() {
                             var selectedDriver = extras.get("DriverList") as List<String>
                             this.driverpnSpinner.setSelection(driverListAdapter!!.getPosition(selectedDriver[0]))
                             this.readDriverpn.text = ""
+                            selectedDriverModel = selectedDriver[0]  // Set the name of the driver, so we can verify while writing
                             setUIValuesforDriver(selectedDriver)
                             writeToggleButton.callOnClick()
                         }
