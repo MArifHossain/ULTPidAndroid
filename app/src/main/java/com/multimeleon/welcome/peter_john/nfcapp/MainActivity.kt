@@ -52,7 +52,6 @@ class MainActivity : AppCompatActivity() {
     var read = true
     var driverDictionary:MutableList<List<String>> = mutableListOf()
     var tempDictionary:MutableList<MutableList<String>> = mutableListOf()
-    var catalogDictionary:MutableList<List<String>> = mutableListOf()
     var rdocIndex:Int = 0
     var driverRanges:MutableList<List<String>> = mutableListOf()
     var driverListAdapter: ArrayAdapter<String>? = null
@@ -65,6 +64,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         readDriversCSV()
+
+        readCatalogCSV()
         //get the spinner from the xml.
         val dropdown = findViewById<Spinner>(R.id.driverpnSpinner) as Spinner
         //create an adapter to describe how the items are displayed, load the list of items from the string array resource
@@ -110,7 +111,10 @@ class MainActivity : AppCompatActivity() {
             val messageReadSuccessfully = NFCUtil.ULTReadConfiguration(intent, false)
             //LET USER KNOW IF THE DRIVER WAS CONFIGURED SUCCESSFULLY
             toast(messageReadSuccessfully.ifElse("Successful Read from Tag", "Tag Communication Interrupted"))
-            updateUI()
+
+            if(messageReadSuccessfully) {
+                updateUI()
+            }
 
         } else {//WRITE USER CONFIGURATION
 
@@ -134,23 +138,43 @@ class MainActivity : AppCompatActivity() {
 
         // Show the Driver name TextView
         this.readDriverpn.visibility = View.VISIBLE
-        this.readDriverpn.text = lookupCatalogNumber(NFCUtil.ultConfigManager.driverCatalogIDString)
+        this.readDriverpn.text = ULTConfigurationOptions.lookupCatalogNumber(NFCUtil.ultConfigManager.driverCatalogIDString)
         setSliderValues(this.readDriverpn.text as String)
 
-        outputCurrentSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() - minOutputCurrent))
-        //outputCurrentSlider.setProgress(((NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() - minOutputCurrent) * (maxOutputCurrent - minOutputCurrent)) / (maxOutputCurrent - minOutputCurrent))
+        if(NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() < minOutputCurrent) {
+            toast("Output Current: Out of range values.")
+        } else {
+            outputCurrentSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() - minOutputCurrent))
+            //outputCurrentSlider.setProgress(((NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() - minOutputCurrent) * (maxOutputCurrent - minOutputCurrent)) / (maxOutputCurrent - minOutputCurrent))
+        }
 
-        minDimCurrentSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt()) - minDimCurrent)
-        //minDimCurrentSlider.setProgress(((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt() - minDimCurrent) * (maxDimCurrent - minDimCurrent)) / (maxDimCurrent - minDimCurrent))
+        if(NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt() < minDimCurrent) {
+            toast("Dim Current: Out of range values.")
+        } else {
+            minDimCurrentSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt()) - minDimCurrent)
+            //minDimCurrentSlider.setProgress(((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt() - minDimCurrent) * (maxDimCurrent - minDimCurrent)) / (maxDimCurrent - minDimCurrent))
+        }
 
-        fullBrightVoltageSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt()) - minFullBrightVoltage)
-        //fullBrightVoltageSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt() - minFullBrightVoltage) * (maxFullBrightVoltage - minFullBrightVoltage) / (maxFullBrightVoltage - minFullBrightVoltage))
+        if(NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt() < minFullBrightVoltage) {
+            toast("Full Bright Voltage: Out of range values.")
+        } else {
+            fullBrightVoltageSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt()) - minFullBrightVoltage)
+            //fullBrightVoltageSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt() - minFullBrightVoltage) * (maxFullBrightVoltage - minFullBrightVoltage) / (maxFullBrightVoltage - minFullBrightVoltage))
+        }
 
-        minDimVoltageSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt()) - minDimControlVoltage)
-        //minDimCurrentSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt() - minDimControlVoltage) * (maxDimControlVoltage - minDimControlVoltage) / (maxDimControlVoltage - minDimControlVoltage))
+        if(NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt() < minDimControlVoltage) {
+            toast("Dim Control Voltage: Out of range values.")
+        } else {
+            minDimVoltageSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt()) - minDimControlVoltage)
+            //minDimCurrentSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt() - minDimControlVoltage) * (maxDimControlVoltage - minDimControlVoltage) / (maxDimControlVoltage - minDimControlVoltage))
+        }
 
-        dimToOffVoltageSpinner.setSelection(NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() -  minDimToOffVoltage)
-        //dimToOffVoltageSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() -  minDimToOffVoltage) * (maxDimToOffVoltage - minDimToOffVoltage) / (maxDimToOffVoltage - minDimToOffVoltage))
+        if(NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() <  minDimToOffVoltage) {
+            toast("Dim To Off Voltage: Out of range values.")
+        } else {
+            dimToOffVoltageSpinner.setSelection(NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() -  minDimToOffVoltage)
+            //dimToOffVoltageSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() -  minDimToOffVoltage) * (maxDimToOffVoltage - minDimToOffVoltage) / (maxDimToOffVoltage - minDimToOffVoltage))
+        }
         //TO DO: SET OTHER CONFIGURABLE PARAMTERS
 
         if(NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve == LINEAR_CURVE.toShort()) {
@@ -852,33 +876,30 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    public fun lookupCatalogNumber(catalogID: String) : String {
-        try{
+    private fun readCatalogCSV() {
+
+        try {
             // If the file has already been read, nothing to do
-            if(catalogDictionary.count() > 0)
-                return catalogDictionary.find(fun(row) = row[0] == catalogID)!![1]
+            if(ULTConfigurationOptions.catalogDictionary.count() > 0)
+                return
 
             val reader = CSVReader(InputStreamReader(assets.open("catalog.csv")))
 
             var nextLine = reader.readNext()
             while (nextLine != null) {
                 //if(nextLine. == "")
-                    //continue;
+                //continue;
                 // nextLine[] is an array of values from the line
                 if(nextLine.joinToString("").isNotBlank())  {
-                    catalogDictionary.add(nextLine.toMutableList())
+                    ULTConfigurationOptions.catalogDictionary.add(nextLine.toMutableList())
                 }
                 nextLine = reader.readNext()
                 println("Lookup Catalog Number = $nextLine.")
             }
-
-            return catalogDictionary.find(fun(row) = row[0] == catalogID)!![1]
-
         } catch (e: Exception) {
             e.printStackTrace()
             Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
         }
-        return ""
     }
 
     private fun readRanges() {
@@ -934,6 +955,7 @@ object ULTConfigurationOptions{
 
     var driverList:MutableList<String> = mutableListOf()
     var rangeDictionary:MutableList<List<String>> = mutableListOf()
+    var catalogDictionary:MutableList<List<String>> = mutableListOf()
 
     var minOutputCurrent : Int = MIN_OUTPUT_CURRENT
     var maxOutputCurrent : Int = MAX_OUTPUT_CURRENT
@@ -968,7 +990,7 @@ object ULTConfigurationOptions{
 
         //LOG CURVE OPTONS
         i = 0
-        while (i <= 10){
+        while (i <= 7){
             dimCurveLogarithmicList.add("$i")
             dimCurveLogarithmicOptionSet.add(i)
             i += 1
@@ -1007,6 +1029,13 @@ object ULTConfigurationOptions{
             minDimCurrentPctList.add("$i %")
             i += 1
         }
+    }
+
+    public fun lookupCatalogNumber(catalogID: String) : String {
+            if(catalogDictionary.count() > 0)
+                return catalogDictionary.find(fun(row) = row[0] == catalogID)!![1]
+            else
+                return ""
     }
 
     //RE-CONFIGURE OPTION RANGES

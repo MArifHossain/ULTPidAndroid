@@ -92,7 +92,7 @@ object NFCUtil {
                         receiveDriverCatalogID()
 
                         //After receiving driver CatalogID we need to get the driver name from the lookupCatalogNumber()
-                        //ULTConfigurationOptions.reconfigureOptions(DriverName)
+                        ULTConfigurationOptions.reconfigureOptions(ULTConfigurationOptions.lookupCatalogNumber(ultConfigManager.driverCatalogIDString))
 
                         //READ TUNING DATA FROM TAG 48 ==> 9 BLOCKS
 
