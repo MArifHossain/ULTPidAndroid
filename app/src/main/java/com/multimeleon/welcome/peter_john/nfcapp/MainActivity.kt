@@ -49,7 +49,12 @@ class MainActivity : AppCompatActivity() {
     var SEARCH: Int = 1
     var SEARCHRESULT: Int = 2
     private var mNfcAdapter: NfcAdapter? = null
-    var read = true
+    var mode = operationMode.READ
+    enum class operationMode{
+        READ,
+        WRITE,
+        RESET
+    }
     var driverDictionary:MutableList<List<String>> = mutableListOf()
     var tempDictionary:MutableList<MutableList<String>> = mutableListOf()
     var rdocIndex:Int = 0
@@ -105,7 +110,7 @@ class MainActivity : AppCompatActivity() {
         println("onNewIntent")
         super.onNewIntent(intent)
 
-        if (read == true) {//READ CURRENT CONFIGURATION
+        if (mode == operationMode.READ) {//READ CURRENT CONFIGURATION
 
             //val messageWrittenSuccessfully = NFCUtil.ULTWriteConfiguration(intent)
             val messageReadSuccessfully = NFCUtil.ULTReadConfiguration(intent, false)
@@ -116,7 +121,7 @@ class MainActivity : AppCompatActivity() {
                 updateUI()
             }
 
-        } else {//WRITE USER CONFIGURATION
+        } else if (mode == operationMode.WRITE) {//WRITE USER CONFIGURATION
 
             //FIRST POPULATE VALUES NOT CONFIGURED BY USER SO WE DONT OVERWRITE WITH BAD DATA
             val configReadSuccessfully = NFCUtil.ULTReadConfiguration(intent, true)
@@ -128,7 +133,6 @@ class MainActivity : AppCompatActivity() {
             } else {
                 toast("Tag Communication Interrupted")
             }
-
         }
 
     }
@@ -217,13 +221,13 @@ class MainActivity : AppCompatActivity() {
 
         //SET DEFAULT BUTTON STATE TO WRITE
         writeToggleButton.callOnClick()
-        read = false
+        mode = operationMode.WRITE
         this.readDriverpn.visibility = View.GONE
 
         //SET HANDLER FOR WRITE TOGGLE BUTTON
         this.writeToggleButton.setOnClickListener(View.OnClickListener { view ->
             println("write button is selected, de-select read and reset")
-            read = false
+            mode = operationMode.WRITE
             view.background = getDrawable(R.drawable.button_highlight)
             (view as Button).setTextColor(Color.WHITE)
             readToggleButton.background = getDrawable(R.drawable.button_border)
@@ -246,7 +250,7 @@ class MainActivity : AppCompatActivity() {
         //SET HANDLER FOR READ TOGGLE BUTTON
         this.readToggleButton.setOnClickListener(View.OnClickListener { view ->
             println("read button is selected, de-select write and reset")
-            read = true
+            mode = operationMode.READ
             view.background = getDrawable(R.drawable.button_highlight)
             (view as Button).setTextColor(Color.WHITE)
             writeToggleButton.background = getDrawable(R.drawable.button_border)
@@ -265,7 +269,7 @@ class MainActivity : AppCompatActivity() {
         //SET HANDLER FOR RESET TOGGLE BUTTON
         this.resetButton.setOnClickListener(View.OnClickListener { view ->
             println("reset button is selected, de-select read and write")
-            read = false
+            mode = operationMode.RESET
             view.background = getDrawable(R.drawable.button_highlight)
             (view as Button).setTextColor(Color.WHITE)
             readToggleButton.background = getDrawable(R.drawable.button_border)
@@ -989,7 +993,7 @@ object ULTConfigurationOptions{
         }
 
         //LOG CURVE OPTONS
-        i = 0
+        i = 1
         while (i <= 7){
             dimCurveLogarithmicList.add("$i")
             dimCurveLogarithmicOptionSet.add(i)
