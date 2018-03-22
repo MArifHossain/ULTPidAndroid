@@ -149,37 +149,38 @@ class MainActivity : AppCompatActivity() {
         // Show the Driver name TextView
         this.readDriverpn.visibility = View.VISIBLE
         this.readDriverpn.text = ULTConfigurationOptions.lookupCatalogNumber(NFCUtil.ultConfigManager.driverCatalogIDString)
+        selectedDriverModel = this.readDriverpn.text as String
         setSliderValues(this.readDriverpn.text as String)
 
-        if(NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() < minOutputCurrent) {
+        if(NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() < minOutputCurrent || NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() > maxOutputCurrent) {
             toast("Output Current: Out of range values.")
         } else {
             outputCurrentSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() - minOutputCurrent))
             //outputCurrentSlider.setProgress(((NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() - minOutputCurrent) * (maxOutputCurrent - minOutputCurrent)) / (maxOutputCurrent - minOutputCurrent))
         }
 
-        if(NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt() < minDimCurrent) {
+        if(NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt() < minDimCurrent || NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt() > maxDimCurrent) {
             toast("Dim Current: Out of range values.")
         } else {
             minDimCurrentSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt()) - minDimCurrent)
             //minDimCurrentSlider.setProgress(((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt() - minDimCurrent) * (maxDimCurrent - minDimCurrent)) / (maxDimCurrent - minDimCurrent))
         }
 
-        if(NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt() < minFullBrightVoltage) {
+        if(NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt() < minFullBrightVoltage || NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt() > maxFullBrightVoltage) {
             toast("Full Bright Voltage: Out of range values.")
         } else {
             fullBrightVoltageSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt()) - minFullBrightVoltage)
             //fullBrightVoltageSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt() - minFullBrightVoltage) * (maxFullBrightVoltage - minFullBrightVoltage) / (maxFullBrightVoltage - minFullBrightVoltage))
         }
 
-        if(NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt() < minDimControlVoltage) {
+        if(NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt() < minDimControlVoltage || NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt() > maxDimControlVoltage) {
             toast("Dim Control Voltage: Out of range values.")
         } else {
             minDimVoltageSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt()) - minDimControlVoltage)
             //minDimCurrentSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt() - minDimControlVoltage) * (maxDimControlVoltage - minDimControlVoltage) / (maxDimControlVoltage - minDimControlVoltage))
         }
 
-        if(NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() <  minDimToOffVoltage) {
+        if(NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() <  minDimToOffVoltage || NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() >  maxDimToOffVoltage) {
             toast("Dim To Off Voltage: Out of range values.")
         } else {
             dimToOffVoltageSpinner.setSelection(NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() -  minDimToOffVoltage)
@@ -187,22 +188,22 @@ class MainActivity : AppCompatActivity() {
         }
         //TO DO: SET OTHER CONFIGURABLE PARAMTERS
 
-        if(NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve == LINEAR_CURVE.toShort()) {
+        if(NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve == LINEAR_CURVE.toShort()) {  // Value = 0
             dimCurveLinearBtn.isChecked = true
             dimCurveSftStrtBtn.isChecked = false
             dimCurveLogBtn.isChecked = false
         }
-        else if(NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve == SOFT_START_CURVE.toShort()) {
+        else if(NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve == SOFT_START_CURVE.toShort()) {  // Value = 16
             dimCurveLinearBtn.isChecked = false
             dimCurveSftStrtBtn.isChecked = true
             dimCurveLogBtn.isChecked = false
         }
-        else if(NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve > LOGERITHMIC_CURVE.toShort()) {
-            var pos = (NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve - LOGERITHMIC_CURVE.toShort())
-            dimCurveSpinner.setSelection(pos)
+        else if(NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve > LOGERITHMIC_CURVE.toShort()) {  // Value = 9 - 15
             dimCurveLinearBtn.isChecked = false
             dimCurveSftStrtBtn.isChecked = false
             dimCurveLogBtn.isChecked = true
+            var pos = (NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve - LOGERITHMIC_CURVE.toShort() -1 )
+            dimCurveSpinner.setSelection(pos)
         }
 
         // Disable controls after updating values
@@ -596,7 +597,7 @@ class MainActivity : AppCompatActivity() {
                     var filteredDrivers:MutableList<List<String>> = driverDictionary
                     filteredDrivers = filteredDrivers.filter(fun(row) = row[0] == (ULTConfigurationOptions.driverList[position])).toMutableList()
 
-                    selectedDriverModel = filteredDrivers[0].toString()  // Set the name of the driver, so we can verify while writing
+                    selectedDriverModel = filteredDrivers[0][0]  // Set the name of the driver, so we can verify while writing
                     setUIValuesforDriver(filteredDrivers[0])
                 } else {
                     resetAll()
@@ -617,7 +618,7 @@ class MainActivity : AppCompatActivity() {
                 //leavingDimToOffVoltageSlider = false
 
                 //SET VALUE IN TAG MEM MAP
-                var dimVal = ((LOGERITHMIC_CURVE.toByte()).or((position.toByte()))).toShort()
+                var dimVal = ((LOGERITHMIC_CURVE.toByte()).or(((position + 1).toByte()))).toShort()
                 NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve = dimVal
                 printConfig()
             }
@@ -648,11 +649,11 @@ class MainActivity : AppCompatActivity() {
         dimToOffVoltageSpinner.setSelection(0)
         dimToOffVoltageSlider.progress = 0
 
-        NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent = MIN_OUTPUT_CURRENT.toShort()
-        NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent = MIN_DIM_CURRENT.toShort()
-        NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage = MIN_FULL_BRIGHT_VOLTAGE.toShort()
-        NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage = MIN_DIM_CONTROL_VOLTAGE.toShort()
-        NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage = MIN_DIM_TO_OFF_CONTROL_VOLTAGE.toShort()
+        NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent = minOutputCurrent.toShort()
+        NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent = minDimCurrent.toShort()
+        NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage = minFullBrightVoltage.toShort()
+        NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage = minDimControlVoltage.toShort()
+        NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage = minDimToOffVoltage.toShort()
         NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve = DEFAULT_DIM_CURVE.toShort()
     }
 

@@ -145,7 +145,7 @@ class ULTConfigurationManager {
         var i = 4
         MDCPendingCommand[1][0] = tuningDataBytes[i]; i++
         MDCPendingCommand[1][1] = tuningDataBytes[i]; i++
-        MDCPendingCommand[1][2] = tuningDataBytes[i]; i++
+        MDCPendingCommand[1][2] = tuningDataBytes[6]; i++
         MDCPendingCommand[1][3] = 160.toByte(); i++//PHONE IS READING OUT 0XA4 FOR SOME REASON.  MANUALLY SETTING 0XA0
 
         MDCPendingCommand[2][0] = tuningDataBytes[i]; i++
@@ -182,7 +182,7 @@ class ULTConfigurationManager {
             pendingConfiguration.fullBrightControlVoltage = brightVoltage.toShort()
             pendingConfiguration.minDimControlVoltage = dimVoltage.toShort()
             pendingConfiguration.dimToOffControlVoltage = dimToOffVoltage.toShort()
-            pendingConfiguration.dimmingCurve = tuningDataBytes[2].toShort()
+            pendingConfiguration.dimmingCurve = tuningDataBytes[6].toShort()
             println("READ OUTPUT CURRENT = $outputCurrent, READ MIN DIM CURRENT = $minDimCurrent, READ BRIGHT VOLTAGE = $brightVoltage")
         }
 
@@ -222,7 +222,7 @@ class ULTConfigurationManager {
     fun ULTCreateMDCProtocolPacket(): ArrayList<ByteArray>{
 
         //SET DIM CURVE
-        MDCPendingCommand[0][2] = pendingConfiguration.dimmingCurve.toByte()
+        MDCPendingCommand[1][2] = pendingConfiguration.dimmingCurve.toByte()
 
         //SET OUTPUT CURRENT IN MDC COMMAND PACKET
         val mdcTrimBaseVal =  ((pendingConfiguration.outputCurrent.toDouble()/ maxOutputCurrent) * 65535).toShort()
@@ -230,7 +230,7 @@ class ULTConfigurationManager {
         MDCPendingCommand[2][1] = ((((mdcTrimBaseVal).and(0xff00.toShort())).toInt()).shr(8)).toByte()
 
         //SET DIM CURRENT
-        val mdcTrimFloor = ((pendingConfiguration.minDimCurrent.toDouble()/ maxDimCurrent) * 65535).toShort()
+        val mdcTrimFloor = ((pendingConfiguration.minDimCurrent.toDouble()/ maxOutputCurrent) * 65535).toShort()
         MDCPendingCommand[2][2] = mdcTrimFloor.and(0xff).toByte()
         MDCPendingCommand[2][3] = ((((mdcTrimFloor).and(0xff00.toShort())).toInt()).shr(8)).toByte()
 
