@@ -76,6 +76,12 @@
                         android:textSize="20sp"
                         android:textColor="@android:color/black"/>
                 </LinearLayout>
+                <EditText
+                    android:id="@+id/errorText"
+                    android:layout_width="1dp"
+                    android:layout_height="1dp"
+                    android:text="" />
+
                 <Spinner
                     android:id="@+id/driverpnSpinner"
                     android:layout_width="match_parent"
