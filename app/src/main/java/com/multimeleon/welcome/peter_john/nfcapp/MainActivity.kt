@@ -383,6 +383,7 @@ class MainActivity : AppCompatActivity() {
 
         var leavingOutputCurrentSlider = false
         var leavingOutputCurrentSpinner = false
+        var leavingMinDimCurrentPercentage = false
 
         //OUTPUT CURRENT SLIDER
         this.outputCurrentSlider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -401,6 +402,19 @@ class MainActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar) {
                 outputCurrentSpinner.setSelection(outputCurrentSlider.progress)
                 NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent = (ULTConfigurationOptions.outputPowerOptionSet[outputCurrentSlider.progress]).toShort()
+
+                if(leavingMinDimCurrentPercentage == false) {
+                    //GET PERCENT VALUE OF TOTAL
+                    var percentSpinner = ((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toDouble() / NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toDouble()) * 100.0).toInt()
+
+                    if (percentSpinner > 99) {
+                        percentSpinner = 100
+                    }
+                    minDimCurrentPctSpinner.setSelection(percentSpinner)
+                } else {
+                    leavingMinDimCurrentPercentage = false
+                }
+
                 checkValues()
             }
         })
@@ -414,6 +428,20 @@ class MainActivity : AppCompatActivity() {
 
                 //SET VALUE IN TAG MEM MAP
                 NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent = (ULTConfigurationOptions.outputPowerOptionSet[position]).toShort()
+
+                if(leavingMinDimCurrentPercentage == false) {
+                    //GET PERCENT VALUE OF TOTAL
+                    var percentSpinner = ((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toDouble() / NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toDouble()) * 100.0).toInt()
+
+                    if (percentSpinner > 99) {
+                        percentSpinner = 100
+                    }
+                    minDimCurrentPctSpinner.setSelection(percentSpinner)
+                } else {
+                    leavingMinDimCurrentPercentage = false
+                }
+
+
                 checkValues()
                 printConfig()
             }
@@ -430,21 +458,12 @@ class MainActivity : AppCompatActivity() {
         //MIN DIM CURRENT SLIDER
         this.minDimCurrentSlider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                //GET PERCENT VALUE OF TOTAL
-                var percentSpinner = ((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toDouble() / NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toDouble()) * 100.0).toInt()
-
-                if (percentSpinner > 99) {
-                    percentSpinner = 100
-                }
-
 
                 //SET APPROPRIATE SPINNER VALUE BASED ON SLIDER POSITION
                 //NEW CONFIGURATION IS WRITTEN TO ULTPendingConfiguration IN SPINNER LISTENER,
                 //WHICH IS CALLED AS A RESULT OF SETTING THE SPINNER SELECTION HERE
                 leavingMinDimCurrentSlider = true
                 minDimCurrentSpinner.setSelection(progress)
-                minDimCurrentPctSpinner.setSelection(percentSpinner)
-                leavingMinDimCurrentSpinner = false
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar) {
@@ -453,6 +472,18 @@ class MainActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar) {
                 minDimCurrentSpinner.setSelection(minDimCurrentSlider.progress)
                 NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent = (ULTConfigurationOptions.minDimCurrentOptionSet[minDimCurrentSlider.progress]).toShort()
+
+                if(leavingMinDimCurrentPercentage == false) {
+                    //GET PERCENT VALUE OF TOTAL
+                    var percentSpinner = ((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toDouble() / NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toDouble()) * 100.0).toInt()
+
+                    if (percentSpinner > 99) {
+                        percentSpinner = 100
+                    }
+                    minDimCurrentPctSpinner.setSelection(percentSpinner)
+                } else {
+                    leavingMinDimCurrentPercentage = false
+                }
 
                 checkValues()
             }
@@ -469,6 +500,19 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent = (ULTConfigurationOptions.minDimCurrentOptionSet[position]).toShort()
+
+                if(leavingMinDimCurrentPercentage == false) {
+                    //GET PERCENT VALUE OF TOTAL
+                    var percentSpinner = ((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toDouble() / NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toDouble()) * 100.0).toInt()
+
+                    if (percentSpinner > 99) {
+                        percentSpinner = 100
+                    }
+                    minDimCurrentPctSpinner.setSelection(percentSpinner)
+                } else {
+                    leavingMinDimCurrentPercentage = false
+                }
+
                 checkValues()
                 printConfig()
             }
@@ -480,14 +524,14 @@ class MainActivity : AppCompatActivity() {
         //MIN DIM CURRENT SPINNER - PERCENT SELECTION
         this.minDimCurrentPctSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                leavingMinDimCurrentSpinner = true
+                leavingMinDimCurrentPercentage = true
                 if (leavingMinDimCurrentSlider == false) {
-                    minDimCurrentSlider.setProgress(position, true)
+                    minDimCurrentSlider.setProgress(((position * NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toDouble()) / 100.0).toInt() - minDimCurrent , true)
                 } else {
                     leavingMinDimCurrentSlider = false
                 }
                 //SET VALUE IN TAG MEM MAP
-                NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent = (position).toShort()//finalSetting.toShort()
+                NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent = (((position * NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toDouble()) / 100.0).toInt()).toShort()//finalSetting.toShort()
                 checkValues()
                 //PRINT CONFIG FOR DEBUGGING
                 printConfig()
