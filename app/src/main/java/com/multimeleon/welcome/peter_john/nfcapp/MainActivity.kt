@@ -1,6 +1,7 @@
 package com.multimeleon.welcome.peter_john.nfcapp
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.nfc.NfcAdapter
@@ -35,6 +36,14 @@ import kotlinx.android.synthetic.main.search_row.*
 import kotlin.experimental.and
 import kotlin.experimental.or
 import android.view.WindowManager
+import android.media.MediaPlayer
+
+
+
+
+
+
+
 
 
 var LINEAR_CURVE = 0b00000000
@@ -63,6 +72,8 @@ class MainActivity : AppCompatActivity() {
     var driverRanges:MutableList<List<String>> = mutableListOf()
     var driverListAdapter: ArrayAdapter<String>? = null
     var selectedDriverModel: String = ""
+    var searchResultSelected = false;
+    var returningFromSearch = false;
 
     //CONVIENECE
     var currentConfig = NFCUtil.ultConfigManager.pendingConfiguration
@@ -98,7 +109,11 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         println("onResume")
         mNfcAdapter?.let {
-            NFCUtil.enableNFCInForeground(it, this, javaClass)
+            NFCUtil.enableNFCInForeground(it, this@MainActivity, javaClass)
+        }
+
+        if (mode == operationMode.RESET) {
+            timerHandler.postDelayed(timerRunnable, 1000)
         }
     }
 
@@ -108,6 +123,7 @@ class MainActivity : AppCompatActivity() {
         mNfcAdapter?.let {
             NFCUtil.disableNFCInForeground(it, this)
         }
+        timerHandler.removeCallbacks(timerRunnable);
     }
 
     //runs without a timer by reposting this handler at the end of the runnable
@@ -132,7 +148,13 @@ class MainActivity : AppCompatActivity() {
             //val messageWrittenSuccessfully = NFCUtil.ULTWriteConfiguration(intent)
             val messageReadSuccessfully = NFCUtil.ULTReadConfiguration(intent, false)
             //LET USER KNOW IF THE DRIVER WAS CONFIGURED SUCCESSFULLY
-            toast(messageReadSuccessfully.ifElse("Successfully read from tag", "Tag Communication Interrupted"))
+            if(messageReadSuccessfully) {
+                toast("Successfully read from tag")
+                val mp = MediaPlayer.create(this, R.raw.readsuccess)
+                mp.start()
+            } else {
+                errorNotification("Tag Communication Interrupted")
+            }
 
             if(messageReadSuccessfully) {
                 updateUI()
@@ -148,12 +170,18 @@ class MainActivity : AppCompatActivity() {
                 if(ULTConfigurationOptions.lookupCatalogNumber(NFCUtil.ultConfigManager.driverCatalogIDString) == selectedDriverModel) {
                     val messageWrittenSuccessfully = NFCUtil.ULTWriteConfiguration(intent)//NFCUtil.createNFCMessage("FAKE MESSAGE", intent)
                     //LET USER KNOW IF THE DRIVER WAS CONFIGURED SUCCESSFULLY
-                    toast(messageWrittenSuccessfully.ifElse("Successfully written to tag", "Tag Communication Interrupted"))
+                    if(messageWrittenSuccessfully) {
+                        toast("Successfully written to tag")
+                        val mp = MediaPlayer.create(this, R.raw.writesuccess)
+                        mp.start()
+                    } else {
+                        errorNotification("Tag Communication Interrupted")
+                    }
                 } else {
-                    toast("Wrong Driver Model")
+                    errorNotification("Wrong Driver Model")
                 }
             } else {
-                toast("Tag Communication Interrupted")
+                errorNotification("Tag Communication Interrupted")
             }
         }
 
@@ -169,36 +197,42 @@ class MainActivity : AppCompatActivity() {
         setSliderValues(this.readDriverpn.text as String)
 
         if(NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() < minOutputCurrent || NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() > maxOutputCurrent) {
-            toast("Output Current: Out of range!")
+            errorNotification("Output Current: Out of range!")
         } else {
             outputCurrentSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() - minOutputCurrent))
             //outputCurrentSlider.setProgress(((NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toInt() - minOutputCurrent) * (maxOutputCurrent - minOutputCurrent)) / (maxOutputCurrent - minOutputCurrent))
         }
 
         if(NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt() < minDimCurrent || NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt() > maxDimCurrent) {
-            toast("Dim Current: Out of range!")
+            errorNotification("Dim Current: Out of range!")
         } else {
             minDimCurrentSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt()) - minDimCurrent)
             minDimCurrentSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt()) - minDimCurrent)
+            var percentSpinner = ((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toDouble() / NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toDouble()) * 100.0).toInt()
+
+            if (percentSpinner > 99) {
+                percentSpinner = 100
+            }
+            minDimCurrentPctSpinner.setSelection(percentSpinner)
             //minDimCurrentSlider.setProgress(((NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent.toInt() - minDimCurrent) * (maxDimCurrent - minDimCurrent)) / (maxDimCurrent - minDimCurrent))
         }
 
         if(NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt() < minFullBrightVoltage || NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt() > maxFullBrightVoltage) {
-            toast("Full Bright Voltage: Out of range!")
+            errorNotification("Full Bright Voltage: Out of range!")
         } else {
             fullBrightVoltageSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt()) - minFullBrightVoltage)
             //fullBrightVoltageSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt() - minFullBrightVoltage) * (maxFullBrightVoltage - minFullBrightVoltage) / (maxFullBrightVoltage - minFullBrightVoltage))
         }
 
         if(NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt() < minDimControlVoltage || NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt() > maxDimControlVoltage) {
-            toast("Min Dim Control Voltage: Out of range!")
+            errorNotification("Min Dim Control Voltage: Out of range!")
         } else {
             minDimVoltageSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt()) - minDimControlVoltage)
             //minDimCurrentSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt() - minDimControlVoltage) * (maxDimControlVoltage - minDimControlVoltage) / (maxDimControlVoltage - minDimControlVoltage))
         }
 
         if(NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() <  minDimToOffVoltage || NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() >  maxDimToOffVoltage) {
-            toast("Dim To Off Voltage: Out of range!")
+            errorNotification("Dim To Off Voltage: Out of range!")
         } else {
             dimToOffVoltageSpinner.setSelection(NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() -  minDimToOffVoltage)
             //dimToOffVoltageSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage.toInt() -  minDimToOffVoltage) * (maxDimToOffVoltage - minDimToOffVoltage) / (maxDimToOffVoltage - minDimToOffVoltage))
@@ -271,8 +305,12 @@ class MainActivity : AppCompatActivity() {
                 setControlsEnabled(true)
             }
 
-            mNfcAdapter?.let {
-                NFCUtil.enableNFCInForeground(it, this, javaClass)
+            if(!returningFromSearch) {
+                mNfcAdapter?.let {
+                    NFCUtil.enableNFCInForeground(it, this, javaClass)
+                }
+            } else {
+                returningFromSearch = false
             }
 
         })
@@ -458,7 +496,9 @@ class MainActivity : AppCompatActivity() {
         //MIN DIM CURRENT SLIDER
         this.minDimCurrentSlider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-
+                if(mode == operationMode.READ) {
+                    return
+                }
                 //SET APPROPRIATE SPINNER VALUE BASED ON SLIDER POSITION
                 //NEW CONFIGURATION IS WRITTEN TO ULTPendingConfiguration IN SPINNER LISTENER,
                 //WHICH IS CALLED AS A RESULT OF SETTING THE SPINNER SELECTION HERE
@@ -492,6 +532,9 @@ class MainActivity : AppCompatActivity() {
         //MIN DIM CURRENT SPINNER - mA SELECTION
         this.minDimCurrentSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if(mode == operationMode.READ) {
+                    return
+                }
                 leavingMinDimCurrentSpinner = true
                 if (leavingMinDimCurrentSlider == false) {
                     minDimCurrentSlider.setProgress(position, true)
@@ -524,6 +567,9 @@ class MainActivity : AppCompatActivity() {
         //MIN DIM CURRENT SPINNER - PERCENT SELECTION
         this.minDimCurrentPctSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if(mode == operationMode.READ) {
+                    return
+                }
                 leavingMinDimCurrentPercentage = true
                 if (leavingMinDimCurrentSlider == false) {
                     minDimCurrentSlider.setProgress(((position * NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toDouble()) / 100.0).toInt() - minDimCurrent , true)
@@ -683,15 +729,20 @@ class MainActivity : AppCompatActivity() {
         this.driverpnSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
 
-                if(position != 0) {
-                    var filteredDrivers:MutableList<List<String>> = driverDictionary
-                    filteredDrivers = filteredDrivers.filter(fun(row) = row[0] == (ULTConfigurationOptions.driverList[position])).toMutableList()
+                if(!searchResultSelected) {  // Don't change anything if values are being set after search in QuikCross
+                    if(position != 0) {
+                        var filteredDrivers:MutableList<List<String>> = driverDictionary
+                        filteredDrivers = filteredDrivers.filter(fun(row) = row[0] == (ULTConfigurationOptions.driverList[position])).toMutableList()
 
-                    selectedDriverModel = filteredDrivers[0][0]  // Set the name of the driver, so we can verify while writing
-                    setUIValuesforDriver(filteredDrivers[0])
+                        selectedDriverModel = filteredDrivers[0][0]  // Set the name of the driver, so we can verify while writing
+                        setUIValuesforDriver(filteredDrivers[0])
+                    } else {
+                        resetAll()
+                    }
                 } else {
-                    resetAll()
+                    searchResultSelected = false;
                 }
+
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -720,39 +771,53 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun errorNotification(textMsg: String) {
+        toast(textMsg)
+        val mp = MediaPlayer.create(this, R.raw.errorsound)
+        mp.start()
+    }
+
     private fun checkValues() {
+        if(mode == operationMode.READ) {
+            return
+        }
+
+        var mError = findViewById<EditText>(R.id.errorText) as EditText
         if(NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent >= NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent) {
             mNfcAdapter?.let {
                 NFCUtil.disableNFCInForeground(it, this@MainActivity)
             }
 
-            var mError = findViewById<EditText>(R.id.errorText) as EditText
             mError.error = "Minimum Dim Current should be less than Output Current"
+            mError.requestFocus()
             return
 
-        } else {
-            var mError = findViewById<EditText>(R.id.errorText) as EditText
-            mError.error = null
+        } else if(NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage <= NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage ||
+                NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage > 3000) {
             mNfcAdapter?.let {
-                NFCUtil.enableNFCInForeground(it, this@MainActivity, javaClass)
+                NFCUtil.disableNFCInForeground(it, this@MainActivity)
             }
-        }
 
-        if(NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage - NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage < 200 ||
+            mError.error = "Minimum Dimming Control Voltage should be greater than Dim-to-Off Control Voltage and <=3V"
+            mError.requestFocus()
+            return
+
+        }  else if(NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage - NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage < 200 ||
                 NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage > 1700) {
             mNfcAdapter?.let {
                 NFCUtil.disableNFCInForeground(it, this@MainActivity)
             }
 
-            var mError = findViewById<EditText>(R.id.errorText) as EditText
             mError.error = "Dim-To-Off Control Voltage must be at least 0.2V below the Minimum Dim Control Voltage and <= 1.7V"
+            mError.requestFocus()
+            return
 
         }  else {
-            var mError = findViewById<EditText>(R.id.errorText) as EditText
             mError.error = null
             mNfcAdapter?.let {
                 NFCUtil.enableNFCInForeground(it, this@MainActivity, javaClass)
             }
+            mError.clearFocus()
         }
     }
 
@@ -868,10 +933,12 @@ class MainActivity : AppCompatActivity() {
                         val extras = intent!!.extras
                         if (extras != null) {
                             var selectedDriver = extras.get("DriverList") as List<String>
+                            searchResultSelected = true;
                             this.driverpnSpinner.setSelection(driverListAdapter!!.getPosition(selectedDriver[0]))
                             this.readDriverpn.text = ""
                             selectedDriverModel = selectedDriver[0]  // Set the name of the driver, so we can verify while writing
                             setUIValuesforDriver(selectedDriver)
+                            returningFromSearch = true;
                             writeToggleButton.callOnClick()
                         }
                     }
@@ -903,7 +970,7 @@ class MainActivity : AppCompatActivity() {
         minDimCurrentSlider.progress = 0
         NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent = (ULTConfigurationOptions.minDimCurrentOptionSet[0]).toShort()
 
-        dimCurveLinearBtn.isChecked = false
+        dimCurveLinearBtn.isChecked = true
         dimCurveSftStrtBtn.isChecked = false
         dimCurveLogBtn.isChecked = false
         dimCurveSpinner.setSelection(0)
@@ -913,9 +980,9 @@ class MainActivity : AppCompatActivity() {
         fullBrightVoltageSlider.progress = 10
         NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage = (((ULTConfigurationOptions.fullBrightVoltageOptionSet[10]).toDouble() / 10) * 1000).toShort()
 
-        minDimVoltageSpinner.setSelection(10)
-        minDimVoltageSlider.progress = 10
-        NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage = ((ULTConfigurationOptions.minDimVoltageOptionSet[10].toDouble() / 10) * 1000).toShort()
+        minDimVoltageSpinner.setSelection(0)
+        minDimVoltageSlider.progress = 0
+        NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage = ((ULTConfigurationOptions.minDimVoltageOptionSet[0].toDouble() / 10) * 1000).toShort()
 
         dimToOffVoltageSpinner.setSelection(0)
         dimToOffVoltageSlider.progress = 0
@@ -1113,6 +1180,8 @@ object ULTConfigurationOptions{
     //SET OPTION RANGES
     fun setupOptions(){
 
+        outputPowerList.clear()
+        outputPowerOptionSet.clear()
         //315mA <= OUTPUT CURRENT <=1050mA
         var i: Int = MIN_OUTPUT_CURRENT
         while (i <= MAX_OUTPUT_CURRENT){
@@ -1121,6 +1190,8 @@ object ULTConfigurationOptions{
             i += 1
         }
 
+        minDimCurrentList.clear()
+        minDimCurrentOptionSet.clear()
         //10mA <= MIN DIM CURRENT <= 263mA
         i = MIN_DIM_CURRENT
         while (i <= MAX_DIM_CURRENT){
@@ -1129,6 +1200,8 @@ object ULTConfigurationOptions{
             i += 1
         }
 
+        dimCurveLogarithmicList.clear()
+        dimCurveLogarithmicOptionSet.clear()
         //LOG CURVE OPTONS
         i = 1
         while (i <= 7){
@@ -1137,6 +1210,8 @@ object ULTConfigurationOptions{
             i += 1
         }
 
+        fullBrightControlVoltageList.clear()
+        fullBrightVoltageOptionSet.clear()
         //7V <= FULL BRIGHT VOLTAGE <= 9V
         //USING INTEGER VALUES BECAUSE ANDROID SLIDER ONLY ALLOWS INT, DIVIDE BY 10 BEFORE SET TAG MEM
         i = MIN_FULL_BRIGHT_VOLTAGE
@@ -1146,6 +1221,8 @@ object ULTConfigurationOptions{
             i += 1
         }
 
+        minDimControlVoltageList.clear()
+        minDimVoltageOptionSet.clear()
         //0V <= MIN DIM CONTROL VOLTAGE <= 3V
         //USING INTEGER VALUES BECAUSE ANDROID SLIDER ONLY ALLOWS INT, DIVIDE BY 10 BEFORE SET TAG MEM
         i = MIN_DIM_CONTROL_VOLTAGE
@@ -1155,6 +1232,8 @@ object ULTConfigurationOptions{
             i += 1
         }
 
+        dimToOffControlVoltageList.clear()
+        dimToOffVoltageOptionset.clear()
         //0V <= DIM TO OFF CONTROL VOLTAGE <= 1.7V
         //USING INTEGER VALUES BECAUSE ANDROID SLIDER ONLY ALLOWS INT, DIVIDE BY 10 BEFORE SET TAG MEM
         i = MIN_DIM_TO_OFF_CONTROL_VOLTAGE
@@ -1164,6 +1243,7 @@ object ULTConfigurationOptions{
             i += 1
         }
 
+        minDimCurrentPctList.clear()
         //0->100%
         i = 0
         while (i <= 100){
