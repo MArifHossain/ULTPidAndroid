@@ -76,11 +76,6 @@
                         android:textSize="20sp"
                         android:textColor="@android:color/black"/>
                 </LinearLayout>
-                <EditText
-                    android:id="@+id/errorText"
-                    android:layout_width="1dp"
-                    android:layout_height="1dp"
-                    android:text="" />
 
                 <Spinner
                     android:id="@+id/driverpnSpinner"
@@ -147,6 +142,15 @@
 
 
                 </LinearLayout>
+
+                <TextView
+                    android:id="@+id/errorText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="8dp"
+                    android:text=""
+                    android:textColor="@android:color/holo_red_dark"
+                    android:visibility="gone" />
 
                 <TextView
                     android:id="@+id/textView11"
@@ -314,6 +318,15 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/errorText2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:paddingLeft="8dp"
+                    android:textColor="@android:color/holo_red_dark"
+                    android:visibility="gone" />
+
+                <TextView
                     android:id="@+id/mdcvLabel"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -347,6 +360,15 @@
                         android:layout_height="match_parent"
                         android:layout_weight="1" />
                 </LinearLayout>
+
+                <TextView
+                    android:id="@+id/errorText3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:paddingLeft="8dp"
+                    android:textColor="@android:color/holo_red_dark"
+                    android:visibility="gone" />
 
                 <TextView
                     android:id="@+id/dtocvLabel"

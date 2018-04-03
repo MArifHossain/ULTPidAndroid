@@ -162,6 +162,10 @@ class MainActivity : AppCompatActivity() {
 
         } else if (mode == operationMode.WRITE) {//WRITE USER CONFIGURATION
 
+            if(errorText.text != "" || errorText2.text != "" || errorText3.text != "" || selectedDriverModel == "") {  // Don't write if there are any validation errors
+                return
+            }
+
             //FIRST POPULATE VALUES NOT CONFIGURED BY USER SO WE DONT OVERWRITE WITH BAD DATA
             val configReadSuccessfully = NFCUtil.ULTReadConfiguration(intent, true)
 
@@ -365,7 +369,7 @@ class MainActivity : AppCompatActivity() {
                 NFCUtil.disableNFCInForeground(it, this)
             }
 
-            timerHandler.postDelayed(timerRunnable, 1000)
+            timerHandler.postDelayed(timerRunnable, 500)
         })
 
         //LINEAR DIMMING CURVE RADIO BUTTON: Linear
@@ -571,13 +575,14 @@ class MainActivity : AppCompatActivity() {
                     return
                 }
                 leavingMinDimCurrentPercentage = true
-                if (leavingMinDimCurrentSlider == false) {
+                if (leavingMinDimCurrentSlider == false && leavingOutputCurrentSlider == false) {
                     minDimCurrentSlider.setProgress(((position * NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toDouble()) / 100.0).toInt() - minDimCurrent , true)
+                    //SET VALUE IN TAG MEM MAP
+                    NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent = (((position * NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toDouble()) / 100.0).toInt()).toShort()//finalSetting.toShort()
                 } else {
                     leavingMinDimCurrentSlider = false
+                    leavingOutputCurrentSlider = false
                 }
-                //SET VALUE IN TAG MEM MAP
-                NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent = (((position * NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toDouble()) / 100.0).toInt()).toShort()//finalSetting.toShort()
                 checkValues()
                 //PRINT CONFIG FOR DEBUGGING
                 printConfig()
@@ -782,42 +787,43 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        var mError = findViewById<EditText>(R.id.errorText) as EditText
+        var mError = findViewById<TextView>(R.id.errorText) as TextView
+        var mError2 = findViewById<TextView>(R.id.errorText2) as TextView
+        var mError3 = findViewById<TextView>(R.id.errorText3) as TextView
         if(NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent >= NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent) {
-            mNfcAdapter?.let {
-                NFCUtil.disableNFCInForeground(it, this@MainActivity)
-            }
 
-            mError.error = "Minimum Dim Current should be less than Output Current"
-            mError.requestFocus()
-            return
-
-        } else if(NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage <= NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage ||
-                NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage > 3000) {
-            mNfcAdapter?.let {
-                NFCUtil.disableNFCInForeground(it, this@MainActivity)
-            }
-
-            mError.error = "Minimum Dimming Control Voltage should be greater than Dim-to-Off Control Voltage and <=3V"
-            mError.requestFocus()
-            return
-
-        }  else if(NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage - NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage < 200 ||
-                NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage > 1700) {
-            mNfcAdapter?.let {
-                NFCUtil.disableNFCInForeground(it, this@MainActivity)
-            }
-
-            mError.error = "Dim-To-Off Control Voltage must be at least 0.2V below the Minimum Dim Control Voltage and <= 1.7V"
-            mError.requestFocus()
-            return
-
-        }  else {
+            mError.text = "Minimum Dim Current should be less than Output Current"
+            mError.error=" "
+            mError.visibility = View.VISIBLE
+        } else {
+            mError.text = ""
             mError.error = null
-            mNfcAdapter?.let {
-                NFCUtil.enableNFCInForeground(it, this@MainActivity, javaClass)
-            }
-            mError.clearFocus()
+            mError.visibility = View.GONE
+        }
+
+        if(NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage <= NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage ||
+                NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage > 3000) {
+
+            mError2.text = "Minimum Dimming Control Voltage should be greater than Dim-to-Off Control Voltage and <=3V"
+            mError2.error=" "
+            mError2.visibility = View.VISIBLE
+        } else {
+            mError2.text = ""
+            mError2.error = null
+            mError2.visibility = View.GONE
+        }
+
+        if(NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage - NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage < 200 ||
+                NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage > 1700) {
+
+            mError3.text = "Dim-To-Off Control Voltage must be at least 0.2V below the Minimum Dim Control Voltage and <= 1.7V"
+            mError3.error=" "
+            mError3.visibility = View.VISIBLE
+
+        } else {
+            mError3.text = ""
+            mError3.error = null
+            mError3.visibility = View.GONE
         }
     }
 
@@ -1005,6 +1011,10 @@ class MainActivity : AppCompatActivity() {
         dimCurveLinearBtn.isEnabled = value
         dimCurveSftStrtBtn.isEnabled = value
         dimCurveLogBtn.isEnabled = value
+
+        errorText.visibility = value.ifElse((errorText.text == "").ifElse(View.GONE, View.VISIBLE), View.GONE)
+        errorText2.visibility = value.ifElse((errorText2.text == "").ifElse(View.GONE, View.VISIBLE), View.GONE)
+        errorText3.visibility = value.ifElse((errorText3.text == "").ifElse(View.GONE, View.VISIBLE), View.GONE)
     }
 
     fun advancedClick(view: View) {
