@@ -32,11 +32,12 @@ import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.minDimT
 import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.minFullBrightVoltage
 import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.minOutputCurrent
 import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.reconfigureOptions
-import kotlinx.android.synthetic.main.search_row.*
-import kotlin.experimental.and
 import kotlin.experimental.or
 import android.view.WindowManager
 import android.media.MediaPlayer
+
+
+
 
 
 
@@ -97,6 +98,7 @@ class MainActivity : AppCompatActivity() {
         setupUI()
         readRanges()
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        version_info.text = "Rev " + BuildConfig.VERSION_NAME
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -291,8 +293,13 @@ class MainActivity : AppCompatActivity() {
         this.writeToggleButton.setOnClickListener(View.OnClickListener { view ->
             println("write button is selected, de-select read and reset")
             mode = operationMode.WRITE
-            view.background = getDrawable(R.drawable.button_highlight)
-            (view as Button).setTextColor(Color.WHITE)
+            if(selectedDriverModel == "") {
+                view.background = getDrawable(R.drawable.button_invalid)
+            } else {
+                view.background = getDrawable(R.drawable.button_highlight)
+                (view as Button).setTextColor(Color.WHITE)
+            }
+
             readToggleButton.background = getDrawable(R.drawable.button_border)
             readToggleButton.setTextColor(Color.BLACK)
             resetButton.background = getDrawable(R.drawable.button_border)
@@ -304,6 +311,8 @@ class MainActivity : AppCompatActivity() {
 
                 if(driverpnSpinner.selectedItemPosition != 0) {
                     setControlsEnabled(true)
+                } else {
+                    view.background = getDrawable(R.drawable.button_invalid)
                 }
             } else {
                 setControlsEnabled(true)
@@ -316,7 +325,6 @@ class MainActivity : AppCompatActivity() {
             } else {
                 returningFromSearch = false
             }
-
         })
 
         //SET HANDLER FOR READ TOGGLE BUTTON
@@ -357,9 +365,10 @@ class MainActivity : AppCompatActivity() {
 
             this.readDriverpn.visibility = View.GONE
             this.readDriverpn.text = ""
-            this.driverpnSpinner.visibility = View.VISIBLE
-
             this.driverpnSpinner.setSelection(0)
+            this.driverpnSpinner.visibility = View.GONE
+
+            selectedDriverModel = ""
 
             resetAll()
 
@@ -743,6 +752,8 @@ class MainActivity : AppCompatActivity() {
                         setUIValuesforDriver(filteredDrivers[0])
                     } else {
                         resetAll()
+                        selectedDriverModel = ""
+                        writeToggleButton.background = getDrawable(R.drawable.button_invalid)
                     }
                 } else {
                     searchResultSelected = false;
@@ -777,7 +788,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun errorNotification(textMsg: String) {
-        toast(textMsg)
+        var toast = Toast.makeText(this, textMsg, Toast.LENGTH_LONG);
+        var view = toast.getView();
+        view.background = getDrawable(R.color.pinkbackground)
+
+        toast.show();
+
         val mp = MediaPlayer.create(this, R.raw.errorsound)
         mp.start()
     }
@@ -795,6 +811,8 @@ class MainActivity : AppCompatActivity() {
             mError.text = "Minimum Dim Current should be less than Output Current"
             mError.error=" "
             mError.visibility = View.VISIBLE
+
+            writeToggleButton.background = getDrawable(R.drawable.button_invalid)
         } else {
             mError.text = ""
             mError.error = null
@@ -807,6 +825,8 @@ class MainActivity : AppCompatActivity() {
             mError2.text = "Minimum Dimming Control Voltage should be greater than Dim-to-Off Control Voltage and <=3V"
             mError2.error=" "
             mError2.visibility = View.VISIBLE
+
+            writeToggleButton.background = getDrawable(R.drawable.button_invalid)
         } else {
             mError2.text = ""
             mError2.error = null
@@ -820,10 +840,19 @@ class MainActivity : AppCompatActivity() {
             mError3.error=" "
             mError3.visibility = View.VISIBLE
 
+            writeToggleButton.background = getDrawable(R.drawable.button_invalid)
         } else {
             mError3.text = ""
             mError3.error = null
             mError3.visibility = View.GONE
+        }
+
+        if(errorText.text == "" && errorText2.text == "" && errorText3.text == "" && selectedDriverModel != "") {
+            if(mode == operationMode.WRITE) {
+                writeToggleButton.background = getDrawable(R.drawable.button_highlight)
+            } else {
+                writeToggleButton.background = getDrawable(R.drawable.button_border)
+            }
         }
     }
 
@@ -1279,8 +1308,8 @@ object ULTConfigurationOptions{
             maxOutputCurrent = MAX_OUTPUT_CURRENT
             minDimCurrent = MIN_DIM_CURRENT
             maxDimCurrent = MAX_DIM_CURRENT
-            minDimControlVoltage = MIN_DIM_CONTROL_VOLTAGE
-            maxDimControlVoltage = MAX_DIM_CONTROL_VOLTAGE
+            minDimControlVoltage = ((MIN_DIM_CONTROL_VOLTAGE / 10) * 1000)
+            maxDimControlVoltage = ((MAX_DIM_CONTROL_VOLTAGE / 10) * 1000)
             minFullBrightVoltage = MIN_FULL_BRIGHT_VOLTAGE
             maxFullBrightVoltage = MAX_FULL_BRIGHT_VOLTAGE
             minDimToOffVoltage = MIN_DIM_TO_OFF_CONTROL_VOLTAGE
