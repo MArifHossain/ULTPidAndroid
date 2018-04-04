@@ -35,6 +35,9 @@ import com.multimeleon.welcome.peter_john.nfcapp.ULTConfigurationOptions.reconfi
 import kotlin.experimental.or
 import android.view.WindowManager
 import android.media.MediaPlayer
+import android.widget.TextView
+
+
 
 
 
@@ -316,6 +319,7 @@ class MainActivity : AppCompatActivity() {
                 }
             } else {
                 setControlsEnabled(true)
+                checkValues()
             }
 
             if(!returningFromSearch) {
@@ -791,6 +795,8 @@ class MainActivity : AppCompatActivity() {
         var toast = Toast.makeText(this, textMsg, Toast.LENGTH_LONG);
         var view = toast.getView();
         view.background = getDrawable(R.color.pinkbackground)
+        val text = view.findViewById<TextView>(android.R.id.message) as TextView
+        text.setTextColor(Color.parseColor("#000000"))
 
         toast.show();
 
