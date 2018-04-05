@@ -78,6 +78,7 @@ class MainActivity : AppCompatActivity() {
     var selectedDriverModel: String = ""
     var searchResultSelected = false;
     var returningFromSearch = false;
+    var readInvalidValues = false;
 
     //CONVIENECE
     var currentConfig = NFCUtil.ultConfigManager.pendingConfiguration
@@ -792,11 +793,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun errorNotification(textMsg: String) {
+        readInvalidValues = true;
         var toast = Toast.makeText(this, textMsg, Toast.LENGTH_LONG);
         var view = toast.getView();
         view.background = getDrawable(R.color.pinkbackground)
         val text = view.findViewById<TextView>(android.R.id.message) as TextView
         text.setTextColor(Color.parseColor("#000000"))
+        text.setPadding(3,3,3,3)
 
         toast.show();
 
@@ -805,7 +808,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkValues() {
-        if(mode == operationMode.READ) {
+        if(mode == operationMode.READ || selectedDriverModel == "") {
             return
         }
 
@@ -1053,6 +1056,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun advancedClick(view: View) {
+
+        if(readInvalidValues && selectedDriverModel != "") {
+            toast("Loaded default values within range.")
+            readInvalidValues = false
+        }
         // Remove the Advanced button
         findViewById<TextView>(R.id.advancedButton).visibility = View.GONE
 
