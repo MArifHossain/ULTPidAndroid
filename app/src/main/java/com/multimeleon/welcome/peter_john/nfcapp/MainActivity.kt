@@ -889,7 +889,7 @@ class MainActivity : AppCompatActivity() {
         NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent = minOutputCurrent.toShort()
         NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent = minDimCurrent.toShort()
         NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage = minFullBrightVoltage.toShort()
-        NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage = minDimControlVoltage.toShort()
+        NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage = ((minDimControlVoltage / 10) * 1000).toShort()
         NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage = minDimToOffVoltage.toShort()
         NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve = DEFAULT_DIM_CURVE.toShort()
     }
@@ -1322,8 +1322,8 @@ object ULTConfigurationOptions{
             maxOutputCurrent = MAX_OUTPUT_CURRENT
             minDimCurrent = MIN_DIM_CURRENT
             maxDimCurrent = MAX_DIM_CURRENT
-            minDimControlVoltage = ((MIN_DIM_CONTROL_VOLTAGE / 10) * 1000)
-            maxDimControlVoltage = ((MAX_DIM_CONTROL_VOLTAGE / 10) * 1000)
+            minDimControlVoltage = MIN_DIM_CONTROL_VOLTAGE
+            maxDimControlVoltage = MAX_DIM_CONTROL_VOLTAGE
             minFullBrightVoltage = MIN_FULL_BRIGHT_VOLTAGE
             maxFullBrightVoltage = MAX_FULL_BRIGHT_VOLTAGE
             minDimToOffVoltage = MIN_DIM_TO_OFF_CONTROL_VOLTAGE
