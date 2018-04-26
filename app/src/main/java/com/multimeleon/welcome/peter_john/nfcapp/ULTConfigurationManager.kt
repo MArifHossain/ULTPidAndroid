@@ -165,7 +165,7 @@ class ULTConfigurationManager {
         MDCPendingCommand[3][3] = tuningDataBytes[i]; i++
 
         val brightVoltage = ((((((MDCPendingCommand[3][1]).toInt()).and(255)).shl(8)).or((MDCPendingCommand[3][0]).toInt() and 255)).toDouble()/100).toInt()//.toDouble()/65535)*1050))).toInt()
-        val dimVoltage = ((((((MDCPendingCommand[3][3]).toInt()).and(255)).shl(8)).or((MDCPendingCommand[3][2]).toInt() and 255)).toDouble()/100).toInt()
+        val dimVoltage = ((((((MDCPendingCommand[3][3]).toInt()).and(255)).shl(8)).or((MDCPendingCommand[3][2]).toInt() and 255)).toDouble()).toInt()
 
 
         MDCPendingCommand[4][0] = tuningDataBytes[i]; i++

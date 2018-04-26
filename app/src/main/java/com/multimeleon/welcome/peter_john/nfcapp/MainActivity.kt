@@ -54,6 +54,10 @@ var LINEAR_CURVE = 0b00000000
 var SOFT_START_CURVE = 0b00010000
 var LOGERITHMIC_CURVE = 0b00001000
 
+var MAX_DIM_VOLTAGE = 3000
+var VOLTAGE_DIFF_MIN = 200
+var MIN_DIM_VOLTAGE = 1700
+
 
 /**
  * Created by joebakalor on 11/7/17.
@@ -234,10 +238,10 @@ class MainActivity : AppCompatActivity() {
             //fullBrightVoltageSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage.toInt() - minFullBrightVoltage) * (maxFullBrightVoltage - minFullBrightVoltage) / (maxFullBrightVoltage - minFullBrightVoltage))
         }
 
-        if(NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt() < minDimControlVoltage || NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt() > maxDimControlVoltage) {
+        if(NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt() / 100 < minDimControlVoltage || NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt() / 100 > maxDimControlVoltage) {
             errorNotification("Min Dim Control Voltage: Out of range!")
         } else {
-            minDimVoltageSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt()) - minDimControlVoltage)
+            minDimVoltageSpinner.setSelection((NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt() / 100) - minDimControlVoltage)
             //minDimCurrentSlider.setProgress((NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage.toInt() - minDimControlVoltage) * (maxDimControlVoltage - minDimControlVoltage) / (maxDimControlVoltage - minDimControlVoltage))
         }
 
@@ -829,7 +833,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if(NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage <= NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage ||
-                NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage > 3000) {
+                NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage > MAX_DIM_VOLTAGE) {
 
             mError2.text = "Minimum Dimming Control Voltage should be greater than Dim-to-Off Control Voltage and <=3V"
             mError2.error=" "
@@ -842,8 +846,8 @@ class MainActivity : AppCompatActivity() {
             mError2.visibility = View.GONE
         }
 
-        if(NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage - NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage < 200 ||
-                NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage > 1700) {
+        if(NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage - NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage < VOLTAGE_DIFF_MIN ||
+                NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage > MIN_DIM_VOLTAGE) {
 
             mError3.text = "Dim-To-Off Control Voltage must be at least 0.2V below the Minimum Dim Control Voltage and <= 1.7V"
             mError3.error=" "
