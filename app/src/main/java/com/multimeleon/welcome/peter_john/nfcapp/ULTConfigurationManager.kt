@@ -138,23 +138,24 @@ class ULTConfigurationManager {
         driverCatalogIDString = (((((staticDataConfiguration[3][1]).toInt()).and(255)).shl(8)).or((staticDataConfiguration[3][0]).toInt() and 65535)).toString()
     }
     //PARSE TUNING DATA BYTE ARRAY READ FROM DRIVER
-    fun ULTParsTuningDataBytes(tuningDataBytes: ByteArray, preWrite: Boolean){
+    fun ULTParsTuningDataBytes(tuningDataBytes: ByteArray, preWrite: Boolean, index: Int){
 
         //COPY DATA READ FROM TUNING DATA BLOCK TO SET AREAS,THE USER WONT
         //CONFIGURE
-        var i = 4
+        var i = index
         MDCPendingCommand[1][0] = tuningDataBytes[i]; i++
         MDCPendingCommand[1][1] = tuningDataBytes[i]; i++
-        MDCPendingCommand[1][2] = tuningDataBytes[6]; i++
-        MDCPendingCommand[1][3] = 160.toByte(); i++//PHONE IS READING OUT 0XA4 FOR SOME REASON.  MANUALLY SETTING 0XA0
+        MDCPendingCommand[1][2] = tuningDataBytes[i]; i++
+        MDCPendingCommand[1][3] = tuningDataBytes[i]; i++//PHONE IS READING OUT 0XA4 FOR SOME REASON.  MANUALLY SETTING 0XA0
 
         MDCPendingCommand[2][0] = tuningDataBytes[i]; i++
         MDCPendingCommand[2][1] = tuningDataBytes[i]; i++
         MDCPendingCommand[2][2] = tuningDataBytes[i]; i++
         MDCPendingCommand[2][3] = tuningDataBytes[i]; i++
 
-        val outputCurrent = (Math.round((((((((MDCPendingCommand[2][1]).toInt()).and(0xff)).shl(8)).or((MDCPendingCommand[2][0]).toInt().and (0x00ff)).toDouble()/0xffff)* maxOutputCurrent))).toInt())
-        val minDimCurrent = (Math.round((((((((MDCPendingCommand[2][3]).toInt()).and(0xff)).shl(8)).or((MDCPendingCommand[2][2]).toInt().and (0x00ff)).toDouble())/0xffff)* maxOutputCurrent))).toInt()
+        val outputCurrent = //((MDCPendingCommand[2][1].toInt() * 256 + MDCPendingCommand[2][0].toInt()).toDouble()/0xffff.toDouble()*maxOutputCurrent.toDouble()).toInt()
+                (Math.round((((((((MDCPendingCommand[2][1]).toInt()).and(0xff)).shl(8)).or((MDCPendingCommand[2][0]).toInt().and (0x00ff)).toDouble()/0xffff.toDouble())* maxOutputCurrent.toDouble()))).toInt())
+        val minDimCurrent = (Math.round((((((((MDCPendingCommand[2][3]).toInt()).and(0xff)).shl(8)).or((MDCPendingCommand[2][2]).toInt().and (0x00ff)).toDouble())/0xffff.toDouble())* maxOutputCurrent.toDouble()))).toInt()
 
 
 
@@ -182,7 +183,7 @@ class ULTConfigurationManager {
             pendingConfiguration.fullBrightControlVoltage = brightVoltage.toShort()
             pendingConfiguration.minDimControlVoltage = dimVoltage.toShort()
             pendingConfiguration.dimToOffControlVoltage = dimToOffVoltage.toShort()
-            pendingConfiguration.dimmingCurve = tuningDataBytes[6].toShort()
+            pendingConfiguration.dimmingCurve = tuningDataBytes[2+index].toShort()
             println("READ OUTPUT CURRENT = $outputCurrent, READ MIN DIM CURRENT = $minDimCurrent, READ BRIGHT VOLTAGE = $brightVoltage")
         }
 

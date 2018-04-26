@@ -32,8 +32,8 @@ object NFCUtil {
         ultConfigManager.ULTParseStaticConfigurationBytes(bytes)
     }
 
-    fun recieveTuningDataConfigBlocks(bytes: ByteArray, preWrite: Boolean){
-        ultConfigManager.ULTParsTuningDataBytes(bytes, preWrite)
+    fun recieveTuningDataConfigBlocks(bytes: ByteArray, preWrite: Boolean, index: Int){
+        ultConfigManager.ULTParsTuningDataBytes(bytes, preWrite, index)
     }
 
     fun recieveLogDataConfigBlocks(bytes: ByteArray){
@@ -116,7 +116,7 @@ object NFCUtil {
                             tuningData.addAll(data.toList())
 
                             //PROCESS TUNING DATA READ FROM DRIVER
-                            recieveTuningDataConfigBlocks(tuningData.toByteArray(), preWrite)
+                            recieveTuningDataConfigBlocks(tuningData.toByteArray(), preWrite, 4)
                         }
 
                         data = it.readPages(112)
@@ -161,6 +161,7 @@ object NFCUtil {
                         }
 
                         if (mdcCommandFound == false){
+                            tuningData.clear()
                             data = it.readPages(48)
                             tuningData.addAll(data.toList())
 
@@ -172,8 +173,11 @@ object NFCUtil {
                             data = it.readPages(56)
                             tuningData.addAll(data.toList())
 
+                            data = it.readPages(60)
+                            tuningData.addAll(data.toList())
+
                             //PROCESS TUNING DATA READ FROM DRIVER
-                            recieveTuningDataConfigBlocks(tuningData.toByteArray(), preWrite)
+                            recieveTuningDataConfigBlocks(tuningData.toByteArray(), preWrite, 0)
                         }
 
                         //READ LOG DATA FROM TAG 64 ==> 4 BLOCK, NOT USED FOR ANYTHING CURRENTLY
