@@ -105,6 +105,7 @@ class MainActivity : AppCompatActivity() {
         ULTConfigurationOptions.setupOptions()
         setupUI()
         readRanges()
+        readDefaultValues()
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         version_info.text = "Rev " + BuildConfig.VERSION_NAME
     }
@@ -253,7 +254,7 @@ class MainActivity : AppCompatActivity() {
         }
         //TO DO: SET OTHER CONFIGURABLE PARAMTERS
 
-        if(NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve == LINEAR_CURVE.toShort()) {  // Value = 0
+        if(NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve == LINEAR_CURVE.toShort() || NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve == LOGERITHMIC_CURVE.toShort()) {  // Value = 0
             dimCurveLinearBtn.isChecked = true
             dimCurveSftStrtBtn.isChecked = false
             dimCurveLogBtn.isChecked = false
@@ -400,7 +401,7 @@ class MainActivity : AppCompatActivity() {
                 dimCurveSpinner.isEnabled = false
                 dimCurveSpinner.setSelection(0)
 
-                NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve = LINEAR_CURVE.toShort()
+                NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve = LOGERITHMIC_CURVE.toShort() //LINEAR_CURVE.toShort() //  8 represents Linear
 
             }
         }
@@ -592,7 +593,10 @@ class MainActivity : AppCompatActivity() {
                 if(mode == operationMode.READ) {
                     return
                 }
-                leavingMinDimCurrentPercentage = true
+                if(leavingMinDimCurrentSpinner == false) {
+                    leavingMinDimCurrentPercentage = true
+                }
+
                 if (leavingMinDimCurrentSlider == false && leavingOutputCurrentSlider == false) {
                     minDimCurrentSlider.setProgress(((position * NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent.toDouble()) / 100.0).toInt() - minDimCurrent , true)
                     //SET VALUE IN TAG MEM MAP
@@ -1003,38 +1007,76 @@ class MainActivity : AppCompatActivity() {
         setControlsEnabled(true)
 
         setSliderValues(selectedDriver[0])
+        var defaultValueRow = ULTConfigurationOptions.defaultDictionary.find(fun(row) = row[0] == selectedDriver[0])
 
-        var outputCurrent = selectedDriver[2].toInt()
+        var outputCurrent = defaultValueRow!![2].toInt()
 
         val outputCurrentSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.outputPowerList)
         this.outputCurrentSpinner.adapter = outputCurrentSpinnerAdapter
 
         outputCurrentSpinner.setSelection(outputCurrent - minOutputCurrent)
         outputCurrentSlider.progress = ((outputCurrent - minOutputCurrent) * (maxOutputCurrent - minOutputCurrent)) / (maxOutputCurrent - minOutputCurrent)
-
         NFCUtil.ultConfigManager.pendingConfiguration.outputCurrent = outputCurrent.toShort()
 
-        minDimCurrentSpinner.setSelection(0)
-        minDimCurrentSlider.progress = 0
-        NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent = (ULTConfigurationOptions.minDimCurrentOptionSet[0]).toShort()
+        var defaultMinDimCurrent = defaultValueRow!![3].toInt()
 
-        dimCurveLinearBtn.isChecked = true
-        dimCurveSftStrtBtn.isChecked = false
-        dimCurveLogBtn.isChecked = false
-        dimCurveSpinner.setSelection(0)
-        dimCurveSpinner.isEnabled = false
+        val minDimCurrentSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.minDimCurrentList)
+        this.minDimCurrentSpinner.adapter = minDimCurrentSpinnerAdapter
+        minDimCurrentSpinner.setSelection(defaultMinDimCurrent - minDimCurrent)
 
-        fullBrightVoltageSpinner.setSelection(10)
-        fullBrightVoltageSlider.progress = 10
-        NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage = (((ULTConfigurationOptions.fullBrightVoltageOptionSet[10]).toDouble() / 10) * 1000).toShort()
+        minDimCurrentSlider.progress = defaultMinDimCurrent - minDimCurrent
+        NFCUtil.ultConfigManager.pendingConfiguration.minDimCurrent = (ULTConfigurationOptions.minDimCurrentOptionSet[defaultMinDimCurrent - minDimCurrent]).toShort()
 
-        minDimVoltageSpinner.setSelection(0)
-        minDimVoltageSlider.progress = 0
-        NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage = ((ULTConfigurationOptions.minDimVoltageOptionSet[0].toDouble() / 10) * 1000).toShort()
+        var defaultDimCurve = defaultValueRow!![1].toShort()
 
-        dimToOffVoltageSpinner.setSelection(0)
-        dimToOffVoltageSlider.progress = 0
-        NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage = ((ULTConfigurationOptions.dimToOffVoltageOptionset[0].toDouble() / 10) * 1000).toShort()
+        val dimCurveLogSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.dimCurveLogarithmicList)
+        this.dimCurveSpinner.adapter = dimCurveLogSpinnerAdapter
+
+        if(defaultDimCurve == LINEAR_CURVE.toShort() || defaultDimCurve == LOGERITHMIC_CURVE.toShort()) {  // Value = 0
+            dimCurveLinearBtn.isChecked = true
+            dimCurveSftStrtBtn.isChecked = false
+            dimCurveLogBtn.isChecked = false
+            dimCurveSpinner.setSelection(0)
+            dimCurveSpinner.isEnabled = false
+        }
+        else if(defaultDimCurve == SOFT_START_CURVE.toShort()) {  // Value = 16
+            dimCurveLinearBtn.isChecked = false
+            dimCurveSftStrtBtn.isChecked = true
+            dimCurveLogBtn.isChecked = false
+            dimCurveSpinner.setSelection(0)
+            dimCurveSpinner.isEnabled = false
+        }
+        else if(defaultDimCurve > LOGERITHMIC_CURVE.toShort()) {  // Value = 9 - 15
+            dimCurveLinearBtn.isChecked = false
+            dimCurveSftStrtBtn.isChecked = false
+            dimCurveLogBtn.isChecked = true
+            var pos = (defaultDimCurve - LOGERITHMIC_CURVE.toShort() -1 )
+            dimCurveSpinner.setSelection(pos)
+        }
+
+        var defaultFullBrightVoltage = defaultValueRow!![4].toShort()
+
+        val fullBrightVoltageSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.fullBrightControlVoltageList)
+        this.fullBrightVoltageSpinner.adapter = fullBrightVoltageSpinnerAdapter
+        fullBrightVoltageSpinner.setSelection(defaultFullBrightVoltage - minFullBrightVoltage)
+        fullBrightVoltageSlider.progress = defaultFullBrightVoltage - minFullBrightVoltage
+        NFCUtil.ultConfigManager.pendingConfiguration.fullBrightControlVoltage = (((ULTConfigurationOptions.fullBrightVoltageOptionSet[defaultFullBrightVoltage - minFullBrightVoltage]).toDouble() / 10) * 1000).toShort()
+
+        var defaultMinDimVoltage = defaultValueRow!![5].toInt()
+
+        val minDimVoltageSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.minDimControlVoltageList)
+        this.minDimVoltageSpinner.adapter = minDimVoltageSpinnerAdapter
+        minDimVoltageSpinner.setSelection(defaultMinDimVoltage - minDimControlVoltage)
+        //minDimVoltageSlider.progress = defaultMinDimVoltage - minDimControlVoltage
+        NFCUtil.ultConfigManager.pendingConfiguration.minDimControlVoltage = ((ULTConfigurationOptions.minDimVoltageOptionSet[defaultMinDimVoltage - minDimControlVoltage].toDouble() / 10) * 1000).toShort()
+
+        var defaultDimToOff = defaultValueRow!![6].toInt()
+
+        val dimToOffVoltageSpinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ULTConfigurationOptions.dimToOffControlVoltageList)
+        this.dimToOffVoltageSpinner.adapter = dimToOffVoltageSpinnerAdapter
+        dimToOffVoltageSpinner.setSelection(defaultDimToOff - minDimToOffVoltage)
+        dimToOffVoltageSlider.progress = defaultDimToOff - minDimToOffVoltage
+        NFCUtil.ultConfigManager.pendingConfiguration.dimToOffControlVoltage = ((ULTConfigurationOptions.dimToOffVoltageOptionset[defaultDimToOff - minDimToOffVoltage].toDouble() / 10) * 1000).toShort()
     }
 
     private fun setControlsEnabled(value: Boolean) {
@@ -1189,6 +1231,29 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
         }
     }
+
+    private fun readDefaultValues() {
+        try{
+            // If the file has already been read, nothing to do
+            if(ULTConfigurationOptions.defaultDictionary.count() > 0)
+                return
+
+            val reader = CSVReader(InputStreamReader(assets.open("defaultvalues.csv")))
+
+            var nextLine = reader.readNext()
+            while (nextLine != null) {
+                // nextLine[] is an array of values from the line
+                if(nextLine.joinToString("").isNotBlank())  {
+                    ULTConfigurationOptions.defaultDictionary.add(nextLine.toMutableList())
+                }
+                nextLine = reader.readNext()
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
+        }
+    }
 }
 
 object ULTConfigurationOptions{
@@ -1221,6 +1286,7 @@ object ULTConfigurationOptions{
     var driverList:MutableList<String> = mutableListOf()
     var rangeDictionary:MutableList<List<String>> = mutableListOf()
     var catalogDictionary:MutableList<List<String>> = mutableListOf()
+    var defaultDictionary:MutableList<List<String>> = mutableListOf()
 
     var minOutputCurrent : Int = MIN_OUTPUT_CURRENT
     var maxOutputCurrent : Int = MAX_OUTPUT_CURRENT

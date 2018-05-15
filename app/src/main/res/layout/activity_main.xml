@@ -44,17 +44,6 @@
                     android:paddingTop="4dp">
 
                     <Button
-                        android:id="@+id/writeToggleButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="5dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/button_border"
-                        android:text="@string/write"
-                        android:textSize="20sp"
-                        android:textColor="@android:color/black"/>
-
-                    <Button
                         android:id="@+id/readToggleButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -64,6 +53,17 @@
                         android:text="@string/read"
                         android:textSize="20sp"
                         android:textColor="@android:color/white"/>
+
+                    <Button
+                        android:id="@+id/writeToggleButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="5dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/button_border"
+                        android:text="@string/write"
+                        android:textSize="20sp"
+                        android:textColor="@android:color/black"/>
 
                     <Button
                         android:id="@+id/resetButton"

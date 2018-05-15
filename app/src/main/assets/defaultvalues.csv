@@ -1,0 +1,8 @@
+Driver,DefaultDimNDriverProfile,DefaultOutputCurrent,DefaultMinDimCurrent,DefaultFullBrightControlVoltage,DefaultMinDimControlVoltage,DefaultDimToOffControlVoltage
+D21CC80UNVPW-C,8,2100,21,80,10,0
+D15CC55UNVPW-C,8,1500,15,80,10,0
+D10CC30UNVPW-C,8,1050,10,80,10,0
+D700C20UNVPW-C,8,700,7,80,10,0
+D15CC55UNVPW-L,8,1500,15,80,10,0
+D10CC30UNVPW-L,8,1050,10,80,10,0
+D700C20UNVPW-L,8,700,7,80,10,0

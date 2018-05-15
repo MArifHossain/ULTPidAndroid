@@ -44,7 +44,7 @@ var MAX_FULL_BRIGHT_VOLTAGE = 90 //VOLTS * 10
 var MIN_DIM_TO_OFF_CONTROL_VOLTAGE = 0 //VOLTS * 10
 var MAX_DIM_TO_OFF_CONTROL_VOLTAGE = 17 //VOLTS * 10
 
-var DEFAULT_DIM_CURVE = 0 // "Linear"
+var DEFAULT_DIM_CURVE = 8 // "Linear"
 
 class ULTConfigurationManager {
 

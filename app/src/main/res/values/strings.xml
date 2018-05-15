@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ULT Driver Configuration</string>
+    <string name="app_name">ULT Touch to Tune</string>
     <string name="max_dim_current">Max Dim Current</string>
     <string name="min_dim_control_voltage">Min Dim Control Voltage</string>
     <string name="minimum_dim_current">Minimum Dim Current</string>
@@ -22,7 +22,7 @@
     <string name="DimmingControlLabel">Dimming Control</string>
     <string name="ValidValueErrorMsg">Please enter valid values</string>
     <string name="select">Select</string>
-    <string name="advanced">Advanced</string>
+    <string name="advanced">Show Advanced Configurable Items</string>
     <string name="quickcross">Quick Cross</string>
 
 
