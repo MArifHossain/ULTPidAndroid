@@ -206,18 +206,6 @@
 
                 </LinearLayout>
 
-                <Button
-                    android:id="@+id/advancedButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:background="@android:color/transparent"
-                    android:textColor="@color/colorPrimaryDark"
-                    android:paddingTop="16dp"
-                    android:text="@string/advanced"
-                    android:onClick="advancedClick"
-                    app:layout_constraintTop_toBottomOf="@+id/layout_minDimCurrent" />
-
                 <TextView
                     android:id="@+id/dimmingCurveLabel"
                     android:layout_width="match_parent"
@@ -225,7 +213,7 @@
                     android:paddingLeft="8dp"
                     android:text="@string/dimming_curve"
                     android:textAppearance="@style/TextAppearance.AppCompat.Button"
-                    android:visibility="gone" />
+                    android:visibility="visible" />
 
                 <LinearLayout
                     android:id="@+id/dimmingCurveLayout"
@@ -237,7 +225,7 @@
                     android:layout_marginTop="4dp"
                     android:background="?attr/colorButtonNormal"
                     android:orientation="vertical"
-                    android:visibility="gone">
+                    android:visibility="visible">
 
                     <RadioButton
                         android:id="@+id/dimCurveLinearBtn"
@@ -289,7 +277,7 @@
                     android:paddingLeft="8dp"
                     android:text="@string/full_bright_control_voltage"
                     android:textAppearance="@style/TextAppearance.AppCompat.Button"
-                    android:visibility="gone"/>
+                    android:visibility="visible"/>
 
                 <LinearLayout
                     android:id="@+id/fbcvLayout"
@@ -301,7 +289,7 @@
                     android:orientation="horizontal"
                     android:paddingLeft="4dp"
                     android:paddingRight="4dp"
-                    android:visibility="gone">
+                    android:visibility="visible">
 
                     <SeekBar
                         android:id="@+id/fullBrightVoltageSlider"
@@ -333,7 +321,7 @@
                     android:paddingLeft="8dp"
                     android:text="@string/min_dim_control_voltage"
                     android:textAppearance="@style/TextAppearance.AppCompat.Button"
-                    android:visibility="gone" />
+                    android:visibility="visible" />
 
                 <LinearLayout
                     android:id="@+id/mdcvLayout"
@@ -345,7 +333,7 @@
                     android:orientation="horizontal"
                     android:paddingLeft="4dp"
                     android:paddingRight="4dp"
-                    android:visibility="gone">
+                    android:visibility="visible">
 
                     <SeekBar
                         android:id="@+id/minDimVoltageSlider"
@@ -377,7 +365,7 @@
                     android:paddingLeft="8dp"
                     android:text="@string/dim_to_off_control_voltage"
                     android:textAppearance="@style/TextAppearance.AppCompat.Button"
-                    android:visibility="gone"/>
+                    android:visibility="visible"/>
 
                 <LinearLayout
                     android:id="@+id/dtocvLayout"
@@ -389,7 +377,7 @@
                     android:orientation="horizontal"
                     android:paddingLeft="4dp"
                     android:paddingRight="4dp"
-                    android:visibility="gone">
+                    android:visibility="visible">
 
                     <SeekBar
                         android:id="@+id/dimToOffVoltageSlider"

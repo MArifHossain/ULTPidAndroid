@@ -1101,32 +1101,6 @@ class MainActivity : AppCompatActivity() {
         errorText3.visibility = value.ifElse((errorText3.text == "").ifElse(View.GONE, View.VISIBLE), View.GONE)
     }
 
-    fun advancedClick(view: View) {
-
-        if(readInvalidValues && selectedDriverModel != "") {
-            toast("Loaded default values within range.")
-            readInvalidValues = false
-        }
-        // Remove the Advanced button
-        findViewById<TextView>(R.id.advancedButton).visibility = View.GONE
-
-        // Show Dimming Curve
-        findViewById<TextView>(R.id.dimmingCurveLabel).visibility = View.VISIBLE
-        findViewById<LinearLayout>(R.id.dimmingCurveLayout).visibility = View.VISIBLE
-
-        // Show Full Bright Control Voltage
-        findViewById<TextView>(R.id.fbcvLabel).visibility = View.VISIBLE
-        findViewById<LinearLayout>(R.id.fbcvLayout).visibility = View.VISIBLE
-
-        // Show Min Dim Control Voltage
-        findViewById<TextView>(R.id.mdcvLabel).visibility = View.VISIBLE
-        findViewById<LinearLayout>(R.id.mdcvLayout).visibility = View.VISIBLE
-
-        // Show Dim-to-Off Control Voltage
-        findViewById<TextView>(R.id.dtocvLabel).visibility = View.VISIBLE
-        findViewById<LinearLayout>(R.id.dtocvLayout).visibility = View.VISIBLE
-    }
-
     private fun readDriversCSV() {
 
         try {
