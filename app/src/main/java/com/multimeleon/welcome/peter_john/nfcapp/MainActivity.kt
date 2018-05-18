@@ -348,6 +348,9 @@ class MainActivity : AppCompatActivity() {
             resetButton.background = getDrawable(R.drawable.button_border)
             resetButton.setTextColor(Color.BLACK)
 
+            selectedDriverModel = ""
+            this.readDriverpn.text = ""
+            this.readDriverpn.visibility = View.GONE
             this.driverpnSpinner.setSelection(0)
             resetAll()
             // Remove the dropdown
@@ -430,7 +433,7 @@ class MainActivity : AppCompatActivity() {
                 dimCurveSpinner.isEnabled = true
 
                 if(mode != operationMode.READ) {
-                    NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve = LOGERITHMIC_CURVE.toShort()
+                    NFCUtil.ultConfigManager.pendingConfiguration.dimmingCurve = (LOGERITHMIC_CURVE + dimCurveSpinner.selectedItemPosition + 1).toShort()
                 }
             }
         }
